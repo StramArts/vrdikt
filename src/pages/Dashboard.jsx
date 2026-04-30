@@ -3,87 +3,42 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useMobile } from '../hooks/useMobile'
-import {
-  getChallengeStatus, getStatusColor, getDaysRemaining, formatINR,
-} from '../lib/challenges'
+import { parseRoast } from '../lib/anthropic'
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
-function greeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning,'
-  if (h < 17) return 'Good afternoon,'
-  return 'Good evening,'
-}
-
-function ScoreArc({ score }) {
-  const color = score < 40 ? '#FF3B30' : score > 70 ? '#30D158' : '#F5C518'
-  const r = 46
-  const circ = 2 * Math.PI * r
-  const offset = circ * (1 - score / 100)
+function Logo() {
   return (
-    <div style={{ position: 'relative', width: 130, height: 130, flexShrink: 0 }}>
-      <svg width="130" height="130" viewBox="0 0 130 130" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="65" cy="65" r={r} fill="none" stroke="#1C1C1C" strokeWidth="9" />
-        <circle
-          cx="65" cy="65" r={r}
-          fill="none" stroke={color} strokeWidth="9" strokeLinecap="round"
-          strokeDasharray={circ} strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1)' }}
-        />
-      </svg>
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span style={{ fontSize: 34, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 11, color: '#444', fontWeight: 600, marginTop: 2 }}>/100</span>
-      </div>
-    </div>
+    <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>
+      <span style={{ color: '#F0F0F0' }}>VRD</span><span style={{ color: '#F5C518' }}>IKT</span>
+    </span>
   )
 }
 
-const COMING_SOON = [
-  { icon: '👑', name: 'BROक Mode',           desc: 'Unlimited roasts + brutal deep dive' },
-  { icon: '📊', name: 'The VRDIKT Report',    desc: 'Your complete annual financial verdict' },
-  { icon: '⚔️', name: 'Spending Duel',        desc: 'Challenge a friend to a spending battle' },
-  { icon: '👥', name: 'Friend Comparisons',   desc: 'See how broke your friends are too' },
-]
+function scoreColor(score) {
+  if (score == null) return '#555'
+  if (score < 40) return '#FF3B30'
+  if (score > 70) return '#30D158'
+  return '#F5C518'
+}
 
-// ─── component ────────────────────────────────────────────────────────────────
+function formatDate(ts) {
+  return new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 export default function Dashboard() {
-  const { user, profile, signOut } = useAuth()
+  const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const isMobile = useMobile()
 
-  const [challenge, setChallenge]   = useState(undefined) // undefined = loading
-  const [roastCount, setRoastCount] = useState(null)
-
-  const SCORE = 47
-  const rawName   = user?.email?.split('@')[0] ?? 'friend'
-  const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1)
-  const monthName = new Date().toLocaleDateString('en-IN', { month: 'long' })
+  const [roasts, setRoasts] = useState(null) // null = loading
 
   useEffect(() => {
     if (!user) return
-
-    supabase
-      .from('challenges')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => setChallenge(data ?? null))
-
     supabase
       .from('roasts')
-      .select('id', { count: 'exact', head: true })
+      .select('id, created_at, roast_text, personality_type, score')
       .eq('user_id', user.id)
-      .then(({ count }) => setRoastCount(count ?? 0))
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setRoasts(data ?? []))
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSignOut() {
@@ -91,9 +46,35 @@ export default function Dashboard() {
     navigate('/', { replace: true })
   }
 
-  const challengeStatus = challenge
-    ? getChallengeStatus(challenge.current_amount, challenge.target_amount)
-    : null
+  // Derived stats
+  const totalRoasts = roasts?.length ?? 0
+  const scores = roasts?.map(r => r.score).filter(s => typeof s === 'number') ?? []
+  const worstScore = scores.length ? Math.min(...scores) : null
+  const bestScore  = scores.length ? Math.max(...scores) : null
+
+  // Streak: consecutive months with at least 1 roast (simple version)
+  const streak = (() => {
+    if (!roasts?.length) return 0
+    const months = new Set(roasts.map(r => {
+      const d = new Date(r.created_at)
+      return `${d.getFullYear()}-${d.getMonth()}`
+    }))
+    let count = 0
+    const now = new Date()
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      if (months.has(`${d.getFullYear()}-${d.getMonth()}`)) count++
+      else break
+    }
+    return count
+  })()
+
+  const STATS = [
+    { label: 'Total Roasts', value: roasts === null ? '—' : totalRoasts, accent: '#FF3B30' },
+    { label: 'Current Streak', value: roasts === null ? '—' : `${streak} mo`, accent: '#F5C518' },
+    { label: 'Worst Score', value: worstScore === null ? '—' : worstScore, accent: '#FF3B30' },
+    { label: 'Best Score',  value: bestScore  === null ? '—' : bestScore,  accent: '#30D158' },
+  ]
 
   return (
     <div style={{
@@ -102,7 +83,7 @@ export default function Dashboard() {
       display: 'flex', flexDirection: 'column',
     }}>
 
-      {/* ── Nav ── */}
+      {/* Nav */}
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '18px 24px', borderBottom: '1px solid #111',
@@ -111,19 +92,22 @@ export default function Dashboard() {
       }}>
         <button
           onClick={() => navigate('/')}
-          style={{
-            background: 'transparent', border: 'none', padding: 0,
-            cursor: 'pointer', fontSize: '19px', fontWeight: 900,
-            letterSpacing: '-0.04em', fontFamily: 'Inter, sans-serif',
-            transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
         >
-          <span style={{ color: '#F0F0F0' }}>VRD</span><span style={{ color: '#F5C518' }}>IKT</span>
+          <Logo />
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {!isMobile && <span style={{ color: '#333', fontSize: '13px' }}>{user?.email}</span>}
+          <button
+            onClick={() => navigate('/pricing')}
+            style={{
+              background: 'transparent', border: 'none', padding: 0,
+              color: '#555', fontSize: '13px', fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Pricing
+          </button>
+          {!isMobile && <span style={{ color: '#252525', fontSize: '13px' }}>{user?.email}</span>}
           <button
             onClick={handleSignOut}
             style={{
@@ -141,167 +125,52 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* ── Content ── */}
+      {/* Content */}
       <div style={{
-        flex: 1, maxWidth: 680, width: '100%',
+        flex: 1, maxWidth: 720, width: '100%',
         margin: '0 auto', padding: '44px 20px 80px',
-        display: 'flex', flexDirection: 'column', gap: '20px',
+        display: 'flex', flexDirection: 'column', gap: '24px',
       }}>
 
-        {/* 1. Greeting */}
-        <div style={{ animation: 'fade-in 0.5s ease forwards' }}>
-          <p style={{ color: '#555', fontSize: '15px', margin: '0 0 4px', fontWeight: 400 }}>
-            {greeting()}
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(28px, 6vw, 38px)', fontWeight: 900,
-            letterSpacing: '-0.04em', margin: '0 0 6px', lineHeight: 1.1,
-          }}>
-            <span style={{ color: '#F5C518' }}>{firstName}</span>
-          </h1>
-          <p style={{ color: '#333', fontSize: '14px', margin: 0 }}>
-            Your financial verdict awaits
-          </p>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
+            <p style={{ color: '#F5C518', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
+              Financial Crime Record
+            </p>
+            <h1 style={{
+              fontSize: 'clamp(22px, 5vw, 32px)', fontWeight: 900,
+              letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1,
+            }}>
+              YOUR FINANCIAL<br />CRIME RECORD
+            </h1>
+          </div>
+          <button
+            onClick={() => navigate('/upload')}
+            style={{
+              background: '#F5C518', border: 'none', borderRadius: '12px',
+              padding: '13px 22px', color: '#0A0A0A',
+              fontSize: '14px', fontWeight: 800,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              letterSpacing: '-0.01em', whiteSpace: 'nowrap',
+              boxShadow: '0 0 32px rgba(245,197,24,0.2)',
+              transition: 'opacity 0.15s, transform 0.15s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            Get Roasted 🔥
+          </button>
         </div>
 
-        {/* 2+3. Score + Challenge side by side */}
+        {/* Stats row */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-          gap: '14px',
-        }}>
-
-          {/* VRDIKT Score card */}
-          <div style={{
-            background: '#0D0D0D', border: '1px solid #161616',
-            borderRadius: '20px', padding: '24px',
-            display: 'flex', flexDirection: 'column', gap: '16px',
-          }}>
-            <div>
-              <p style={{ color: '#444', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, margin: '0 0 4px' }}>
-                VRDIKT Score
-              </p>
-              <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>
-                Your financial health this month
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <ScoreArc score={SCORE} />
-              <div>
-                <p style={{ color: '#F5C518', fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
-                  Could be worse
-                </p>
-                <p style={{ color: '#3A3A3A', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
-                  You're spending like someone who knows better but doesn't care.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Savings Challenge card */}
-          <div style={{
-            background: '#0D0D0D', border: '1px solid #161616',
-            borderRadius: '20px', padding: '24px',
-            display: 'flex', flexDirection: 'column', gap: '14px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-              <div>
-                <p style={{ color: '#444', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, margin: '0 0 4px' }}>
-                  Your {monthName} Challenge
-                </p>
-                {challenge === undefined && (
-                  <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>Loading…</p>
-                )}
-                {challenge === null && (
-                  <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>No active challenge</p>
-                )}
-                {challenge && (
-                  <p style={{ color: '#888', fontSize: '13px', margin: 0, lineHeight: 1.4 }}>
-                    {challenge.goal}
-                  </p>
-                )}
-              </div>
-              {challengeStatus && (
-                <span style={{
-                  background: `${getStatusColor(challengeStatus)}18`,
-                  border: `1px solid ${getStatusColor(challengeStatus)}44`,
-                  borderRadius: '20px', padding: '3px 9px',
-                  color: getStatusColor(challengeStatus),
-                  fontSize: '10px', fontWeight: 700,
-                  letterSpacing: '0.1em', whiteSpace: 'nowrap', flexShrink: 0,
-                }}>
-                  {challengeStatus}
-                </span>
-              )}
-            </div>
-
-            {challenge && (
-              <>
-                {/* Progress bar */}
-                <div>
-                  <div style={{ background: '#1A1A1A', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${Math.min((challenge.current_amount / challenge.target_amount) * 100, 100)}%`,
-                      background: getStatusColor(challengeStatus),
-                      borderRadius: '4px',
-                      transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
-                    }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
-                    <span style={{ color: '#555', fontSize: '12px' }}>
-                      {formatINR(challenge.current_amount)} spent
-                    </span>
-                    <span style={{ color: '#333', fontSize: '12px' }}>
-                      limit {formatINR(challenge.target_amount)}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => navigate('/challenge')}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #F5C518',
-                    borderRadius: '10px', padding: '9px 16px',
-                    color: '#F5C518', fontSize: '13px', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                    transition: 'background 0.15s',
-                    marginTop: 'auto',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,197,24,0.07)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  View Challenge →
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* 4. Quick stats */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
           gap: '10px',
         }}>
-          {[
-            {
-              label: 'Roasts Received',
-              value: roastCount === null ? '—' : roastCount,
-              accent: '#FF3B30',
-            },
-            {
-              label: 'Current Streak',
-              value: '1 month',
-              accent: '#F5C518',
-            },
-            {
-              label: 'This Month',
-              value: monthName,
-              accent: '#6B6B6B',
-            },
-          ].map(({ label, value, accent }) => (
+          {STATS.map(({ label, value, accent }) => (
             <div key={label} style={{
               background: '#0D0D0D', border: '1px solid #161616',
               borderRadius: '16px', padding: '16px 14px',
@@ -310,85 +179,150 @@ export default function Dashboard() {
               <span style={{ color: '#333', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em' }}>
                 {label}
               </span>
-              <span style={{ color: accent, fontSize: isMobile ? '16px' : '18px', fontWeight: 800, letterSpacing: '-0.02em' }}>
+              <span style={{ color: accent, fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em' }}>
                 {value}
               </span>
             </div>
           ))}
         </div>
 
-        {/* 5. Get Roasted CTA */}
-        <button
-          onClick={() => navigate('/upload')}
-          style={{
-            width: '100%', background: '#F5C518',
-            border: 'none', borderRadius: '16px',
-            padding: '20px 32px', color: '#0A0A0A',
-            fontSize: '18px', fontWeight: 900,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            letterSpacing: '-0.02em',
-            boxShadow: '0 0 48px rgba(245,197,24,0.18)',
-            transition: 'opacity 0.15s, transform 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
-          onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-          onMouseUp={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-        >
-          Get Roasted 🔥
-        </button>
-
-        {/* 6. Coming Soon */}
-        <div style={{ marginTop: '12px' }}>
+        {/* Roast History */}
+        <div>
           <p style={{
-            color: '#F5C518', fontSize: '10px', letterSpacing: '0.2em',
+            color: '#444', fontSize: '10px', letterSpacing: '0.2em',
             textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px',
           }}>
-            Coming Soon
+            Roast History
           </p>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-            gap: '10px',
-          }}>
-            {COMING_SOON.map(({ icon, name, desc }) => (
-              <div
-                key={name}
+
+          {roasts === null && (
+            <p style={{ color: '#333', fontSize: '14px', textAlign: 'center', padding: '32px 0' }}>Loading…</p>
+          )}
+
+          {roasts?.length === 0 && (
+            <div style={{
+              background: '#0D0D0D', border: '1px solid #161616',
+              borderRadius: '20px', padding: '48px 24px',
+              textAlign: 'center', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '16px',
+            }}>
+              <span style={{ fontSize: '40px' }}>📂</span>
+              <p style={{ color: '#555', fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+                No crimes on record. Yet.
+              </p>
+              <button
+                onClick={() => navigate('/upload')}
                 style={{
-                  position: 'relative',
-                  background: '#0A0A0A', border: '1px solid #141414',
-                  borderRadius: '16px', padding: '18px 20px',
-                  opacity: 0.65,
-                  transition: 'opacity 0.2s',
+                  background: '#F5C518', border: 'none', borderRadius: '10px',
+                  padding: '11px 22px', color: '#0A0A0A',
+                  fontSize: '14px', fontWeight: 800,
+                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                  marginTop: '4px',
                 }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.65'}
               >
-                <div style={{
-                  position: 'absolute', top: '12px', right: '12px',
-                  background: 'rgba(245,197,24,0.08)',
-                  border: '1px solid rgba(245,197,24,0.2)',
-                  borderRadius: '20px', padding: '2px 8px',
-                  color: '#F5C518', fontSize: '8px', fontWeight: 700,
-                  letterSpacing: '0.14em', textTransform: 'uppercase',
-                }}>
-                  COMING SOON
-                </div>
-                <span style={{ fontSize: '24px', display: 'block', marginBottom: '10px', filter: 'grayscale(0.3)' }}>
-                  {icon}
-                </span>
-                <p style={{ color: '#666', fontSize: '14px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '-0.01em' }}>
-                  {name}
+                Get Roasted →
+              </button>
+            </div>
+          )}
+
+          {roasts?.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {roasts.map((r) => {
+                const parsed = parseRoast(r.roast_text ?? '')
+                const preview = parsed.roastLines?.[0] ?? '—'
+                const personality = r.personality_type ?? parsed.personalityType
+                const score = r.score ?? parsed.score
+
+                return (
+                  <div key={r.id} style={{
+                    background: '#0D0D0D', border: '1px solid #161616',
+                    borderRadius: '18px', padding: '20px 22px',
+                    display: 'flex', alignItems: 'flex-start',
+                    justifyContent: 'space-between', gap: '16px',
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ color: '#333', fontSize: '12px' }}>{formatDate(r.created_at)}</span>
+                        {personality && (
+                          <span style={{
+                            background: 'rgba(245,197,24,0.08)',
+                            border: '1px solid rgba(245,197,24,0.15)',
+                            borderRadius: '20px', padding: '2px 9px',
+                            color: '#F5C518', fontSize: '11px', fontWeight: 600,
+                          }}>
+                            {personality}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{
+                        color: '#888', fontSize: '13px', margin: 0,
+                        lineHeight: 1.5, overflow: 'hidden',
+                        display: '-webkit-box', WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}>
+                        "{preview}"
+                      </p>
+                    </div>
+                    <div style={{
+                      flexShrink: 0, textAlign: 'center',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                    }}>
+                      <span style={{ color: scoreColor(score), fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em' }}>
+                        {score ?? '—'}
+                      </span>
+                      <span style={{ color: '#2A2A2A', fontSize: '10px', fontWeight: 600 }}>/100</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* BROक Mode */}
+        <div style={{
+          background: '#0A0A0A', border: '1px solid #141414',
+          borderRadius: '20px', padding: '28px 24px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at top left, rgba(245,197,24,0.03) 0%, transparent 60%)',
+            pointerEvents: 'none',
+          }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '28px' }}>🔒</span>
+              <div>
+                <p style={{ color: '#555', fontSize: '14px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.01em' }}>
+                  BROक Mode
                 </p>
-                <p style={{ color: '#2E2E2E', fontSize: '12px', margin: 0, lineHeight: 1.4, paddingRight: '20px' }}>
-                  {desc}
-                </p>
-                <span style={{ position: 'absolute', bottom: '14px', right: '14px', fontSize: '12px', color: '#1E1E1E' }}>
-                  🔒
-                </span>
               </div>
-            ))}
+            </div>
+            <span style={{
+              background: 'rgba(245,197,24,0.07)',
+              border: '1px solid rgba(245,197,24,0.15)',
+              borderRadius: '20px', padding: '3px 10px',
+              color: '#F5C518', fontSize: '9px', fontWeight: 700,
+              letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0,
+            }}>
+              Coming Soon
+            </span>
           </div>
+          <p style={{ color: '#2E2E2E', fontSize: '13px', margin: '0 0 18px', lineHeight: 1.5 }}>
+            Challenge a friend. Whoever spends worse loses. Bragging rights included.
+          </p>
+          <button
+            disabled
+            style={{
+              background: 'transparent', border: '1px solid #1A1A1A',
+              borderRadius: '10px', padding: '10px 20px',
+              color: '#2A2A2A', fontSize: '13px', fontWeight: 700,
+              cursor: 'not-allowed', fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Challenge a Friend
+          </button>
         </div>
 
       </div>

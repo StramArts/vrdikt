@@ -9,12 +9,14 @@ import Upload from './pages/Upload'
 import Roast from './pages/Roast'
 import Challenge from './pages/Challenge'
 import Profile from './pages/Profile'
+import Pricing from './pages/Pricing'
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/"            element={<Landing />} />
+        <Route path="/pricing"     element={<Pricing />} />
         <Route path="/auth"        element={<Auth />} />
         {/* /onboarding: needs auth but must not trigger the onboarding redirect itself */}
         <Route path="/onboarding"  element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
