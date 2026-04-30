@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useMobile } from '../hooks/useMobile'
 import { parseRoast } from '../lib/anthropic'
+import { checkZomatoDetox } from '../lib/challenges'
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function Logo() {
   return (
@@ -13,29 +16,135 @@ function Logo() {
   )
 }
 
-function scoreColor(score) {
-  if (score == null) return '#555'
-  if (score < 40) return '#FF3B30'
-  if (score > 70) return '#30D158'
-  return '#F5C518'
+function scoreColor(s) {
+  if (s == null) return '#555'
+  return s < 40 ? '#FF3B30' : s > 70 ? '#30D158' : '#F5C518'
 }
 
 function formatDate(ts) {
   return new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+function calcStreak(roasts) {
+  if (!roasts?.length) return 0
+  const daySet = new Set(roasts.map(r => new Date(r.created_at).toDateString()))
+  let count = 0
+  const d = new Date()
+  while (daySet.has(d.toDateString())) {
+    count++
+    d.setDate(d.getDate() - 1)
+  }
+  return count
+}
+
+// ─── sub-components ───────────────────────────────────────────────────────────
+
+function StatCard({ label, value, accent }) {
+  return (
+    <div style={{
+      background: '#0D0D0D', border: '1px solid #161616',
+      borderRadius: '16px', padding: '16px 14px',
+      display: 'flex', flexDirection: 'column', gap: '6px',
+    }}>
+      <span style={{ color: '#333', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em' }}>
+        {label}
+      </span>
+      <span style={{ color: accent, fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em' }}>
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function ChallengeCard({ emoji, name, description, progress, total, status, message, locked }) {
+  const statusColors = { active: '#F5C518', failed: '#FF3B30', completed: '#30D158' }
+  const statusColor = statusColors[status] ?? '#F5C518'
+  const pct = total > 0 ? Math.min((progress / total) * 100, 100) : 0
+
+  if (locked) {
+    return (
+      <div style={{
+        background: '#0A0A0A', border: '1px solid #141414',
+        borderRadius: '20px', padding: '22px 20px',
+        opacity: 0.55, position: 'relative',
+        display: 'flex', flexDirection: 'column', gap: '10px',
+      }}>
+        <div style={{
+          position: 'absolute', top: '14px', right: '14px',
+          background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
+          borderRadius: '20px', padding: '2px 9px',
+          color: '#F5C518', fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
+        }}>
+          COMING SOON
+        </div>
+        <span style={{ fontSize: '26px' }}>{emoji}</span>
+        <p style={{ color: '#555', fontSize: '15px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em', paddingRight: '80px' }}>
+          {name}
+        </p>
+        <p style={{ color: '#222', fontSize: '13px', margin: 0, lineHeight: 1.4 }}>{description}</p>
+        <span style={{ position: 'absolute', bottom: '16px', right: '16px', fontSize: '18px' }}>🔒</span>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      background: '#111', border: '1px solid rgba(245,197,24,0.12)',
+      borderRadius: '20px', padding: '22px 20px',
+      display: 'flex', flexDirection: 'column', gap: '12px',
+      boxShadow: '0 0 32px rgba(245,197,24,0.04)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '22px' }}>{emoji}</span>
+          <p style={{ color: '#F0F0F0', fontSize: '15px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
+            {name}
+          </p>
+        </div>
+        <span style={{
+          background: `${statusColor}15`,
+          border: `1px solid ${statusColor}44`,
+          borderRadius: '20px', padding: '3px 9px',
+          color: statusColor, fontSize: '10px', fontWeight: 700,
+          letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
+        }}>
+          {status}
+        </span>
+      </div>
+      <p style={{ color: '#444', fontSize: '13px', margin: 0, lineHeight: 1.4 }}>{description}</p>
+      <div>
+        <div style={{ background: '#1A1A1A', borderRadius: '4px', height: '5px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', width: `${pct}%`,
+            background: statusColor, borderRadius: '4px',
+            transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
+          }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+          <span style={{ color: '#333', fontSize: '11px' }}>{message}</span>
+          <span style={{ color: statusColor, fontSize: '11px', fontWeight: 700 }}>
+            Day {progress} / {total}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── main component ───────────────────────────────────────────────────────────
+
 export default function Dashboard() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const isMobile = useMobile()
 
-  const [roasts, setRoasts] = useState(null) // null = loading
+  const [roasts, setRoasts] = useState(null)
 
   useEffect(() => {
     if (!user) return
     supabase
       .from('roasts')
-      .select('id, created_at, roast_text, personality_type, score')
+      .select('id, created_at, roast_text, personality_type, score, roast_lines')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setRoasts(data ?? []))
@@ -46,34 +155,20 @@ export default function Dashboard() {
     navigate('/', { replace: true })
   }
 
-  // Derived stats
-  const totalRoasts = roasts?.length ?? 0
+  const loading = roasts === null
+
   const scores = roasts?.map(r => r.score).filter(s => typeof s === 'number') ?? []
+  const streak    = calcStreak(roasts ?? [])
   const worstScore = scores.length ? Math.min(...scores) : null
   const bestScore  = scores.length ? Math.max(...scores) : null
 
-  // Streak: consecutive months with at least 1 roast (simple version)
-  const streak = (() => {
-    if (!roasts?.length) return 0
-    const months = new Set(roasts.map(r => {
-      const d = new Date(r.created_at)
-      return `${d.getFullYear()}-${d.getMonth()}`
-    }))
-    let count = 0
-    const now = new Date()
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      if (months.has(`${d.getFullYear()}-${d.getMonth()}`)) count++
-      else break
-    }
-    return count
-  })()
+  const zomato = roasts ? checkZomatoDetox(roasts) : null
 
   const STATS = [
-    { label: 'Total Roasts', value: roasts === null ? '—' : totalRoasts, accent: '#FF3B30' },
-    { label: 'Current Streak', value: roasts === null ? '—' : `${streak} mo`, accent: '#F5C518' },
-    { label: 'Worst Score', value: worstScore === null ? '—' : worstScore, accent: '#FF3B30' },
-    { label: 'Best Score',  value: bestScore  === null ? '—' : bestScore,  accent: '#30D158' },
+    { label: 'Total Roasts',   value: loading ? '—' : roasts.length,          accent: '#FF3B30' },
+    { label: 'Current Streak', value: loading ? '—' : `${streak}d`,            accent: '#F5C518' },
+    { label: 'Worst Score',    value: loading || worstScore === null ? '—' : worstScore, accent: '#FF3B30' },
+    { label: 'Best Score',     value: loading || bestScore  === null ? '—' : bestScore,  accent: '#30D158' },
   ]
 
   return (
@@ -83,7 +178,7 @@ export default function Dashboard() {
       display: 'flex', flexDirection: 'column',
     }}>
 
-      {/* Nav */}
+      {/* ── Nav ── */}
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '18px 24px', borderBottom: '1px solid #111',
@@ -101,7 +196,7 @@ export default function Dashboard() {
             onClick={() => navigate('/pricing')}
             style={{
               background: 'transparent', border: 'none', padding: 0,
-              color: '#555', fontSize: '13px', fontWeight: 500,
+              color: '#444', fontSize: '13px', fontWeight: 500,
               cursor: 'pointer', fontFamily: 'Inter, sans-serif',
             }}
           >
@@ -125,24 +220,24 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <div style={{
-        flex: 1, maxWidth: 720, width: '100%',
+        flex: 1, maxWidth: 760, width: '100%',
         margin: '0 auto', padding: '44px 20px 80px',
-        display: 'flex', flexDirection: 'column', gap: '24px',
+        display: 'flex', flexDirection: 'column', gap: '32px',
       }}>
 
-        {/* Header */}
+        {/* ── SECTION 1: Header ── */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <p style={{ color: '#F5C518', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
+            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
               Financial Crime Record
             </p>
             <h1 style={{
-              fontSize: 'clamp(22px, 5vw, 32px)', fontWeight: 900,
+              fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 900,
               letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1,
             }}>
-              YOUR FINANCIAL<br />CRIME RECORD
+              Your Dashboard
             </h1>
           </div>
           <button
@@ -164,29 +259,62 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Stats row */}
+        {/* ── SECTION 2: Stats ── */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
           gap: '10px',
         }}>
-          {STATS.map(({ label, value, accent }) => (
-            <div key={label} style={{
-              background: '#0D0D0D', border: '1px solid #161616',
-              borderRadius: '16px', padding: '16px 14px',
-              display: 'flex', flexDirection: 'column', gap: '6px',
-            }}>
-              <span style={{ color: '#333', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em' }}>
-                {label}
-              </span>
-              <span style={{ color: accent, fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em' }}>
-                {value}
-              </span>
-            </div>
-          ))}
+          {STATS.map(s => <StatCard key={s.label} {...s} />)}
         </div>
 
-        {/* Roast History */}
+        {/* ── SECTION 3: Active Challenges ── */}
+        <div>
+          <p style={{
+            color: '#444', fontSize: '10px', letterSpacing: '0.2em',
+            textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px',
+          }}>
+            Active Challenges
+          </p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '12px',
+          }}>
+            <ChallengeCard
+              emoji="🍕"
+              name="Zomato Detox"
+              description="No food delivery for 7 days"
+              progress={zomato?.daysClean ?? 0}
+              total={7}
+              status={zomato?.status ?? 'active'}
+              message={zomato?.message ?? 'Submit your spending to start tracking'}
+              locked={false}
+            />
+            <ChallengeCard
+              emoji="💰"
+              name="Savings Sprint"
+              description="Save at least 20% of your income this month"
+              progress={0}
+              total={1}
+              status="active"
+              message=""
+              locked={true}
+            />
+            <ChallengeCard
+              emoji="📱"
+              name="Subscription Audit"
+              description="Find and cancel one subscription you forgot about"
+              progress={0}
+              total={1}
+              status="active"
+              message=""
+              locked={true}
+            />
+          </div>
+        </div>
+
+        {/* ── SECTION 4: Roast History ── */}
         <div>
           <p style={{
             color: '#444', fontSize: '10px', letterSpacing: '0.2em',
@@ -195,18 +323,18 @@ export default function Dashboard() {
             Roast History
           </p>
 
-          {roasts === null && (
-            <p style={{ color: '#333', fontSize: '14px', textAlign: 'center', padding: '32px 0' }}>Loading…</p>
+          {loading && (
+            <p style={{ color: '#333', fontSize: '14px', padding: '32px 0', textAlign: 'center' }}>Loading…</p>
           )}
 
-          {roasts?.length === 0 && (
+          {!loading && roasts.length === 0 && (
             <div style={{
               background: '#0D0D0D', border: '1px solid #161616',
               borderRadius: '20px', padding: '48px 24px',
               textAlign: 'center', display: 'flex', flexDirection: 'column',
               alignItems: 'center', gap: '16px',
             }}>
-              <span style={{ fontSize: '40px' }}>📂</span>
+              <span style={{ fontSize: '36px' }}>📂</span>
               <p style={{ color: '#555', fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
                 No crimes on record. Yet.
               </p>
@@ -217,7 +345,6 @@ export default function Dashboard() {
                   padding: '11px 22px', color: '#0A0A0A',
                   fontSize: '14px', fontWeight: 800,
                   cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                  marginTop: '4px',
                 }}
               >
                 Get Roasted →
@@ -225,13 +352,13 @@ export default function Dashboard() {
             </div>
           )}
 
-          {roasts?.length > 0 && (
+          {!loading && roasts.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {roasts.map((r) => {
+              {roasts.map(r => {
                 const parsed = parseRoast(r.roast_text ?? '')
-                const preview = parsed.roastLines?.[0] ?? '—'
+                const preview = (r.roast_lines?.[0]) ?? parsed.roastLines?.[0] ?? '—'
                 const personality = r.personality_type ?? parsed.personalityType
-                const score = r.score ?? parsed.score
+                const sc = r.score ?? parsed.score
 
                 return (
                   <div key={r.id} style={{
@@ -255,20 +382,17 @@ export default function Dashboard() {
                         )}
                       </div>
                       <p style={{
-                        color: '#888', fontSize: '13px', margin: 0,
-                        lineHeight: 1.5, overflow: 'hidden',
-                        display: '-webkit-box', WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
+                        color: '#666', fontSize: '13px', margin: 0,
+                        lineHeight: 1.5,
+                        overflow: 'hidden',
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                       }}>
                         "{preview}"
                       </p>
                     </div>
-                    <div style={{
-                      flexShrink: 0, textAlign: 'center',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-                    }}>
-                      <span style={{ color: scoreColor(score), fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em' }}>
-                        {score ?? '—'}
+                    <div style={{ flexShrink: 0, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                      <span style={{ color: scoreColor(sc), fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em' }}>
+                        {sc ?? '—'}
                       </span>
                       <span style={{ color: '#2A2A2A', fontSize: '10px', fontWeight: 600 }}>/100</span>
                     </div>
@@ -279,7 +403,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* BROक Mode */}
+        {/* ── SECTION 5: BROक Mode ── */}
         <div style={{
           background: '#0A0A0A', border: '1px solid #141414',
           borderRadius: '20px', padding: '28px 24px',
@@ -292,12 +416,10 @@ export default function Dashboard() {
           }} />
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '28px' }}>🔒</span>
-              <div>
-                <p style={{ color: '#555', fontSize: '14px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.01em' }}>
-                  BROक Mode
-                </p>
-              </div>
+              <span style={{ fontSize: '26px' }}>🔒</span>
+              <p style={{ color: '#555', fontSize: '15px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
+                BROक Mode
+              </p>
             </div>
             <span style={{
               background: 'rgba(245,197,24,0.07)',
@@ -317,11 +439,11 @@ export default function Dashboard() {
             style={{
               background: 'transparent', border: '1px solid #1A1A1A',
               borderRadius: '10px', padding: '10px 20px',
-              color: '#2A2A2A', fontSize: '13px', fontWeight: 700,
+              color: '#252525', fontSize: '13px', fontWeight: 700,
               cursor: 'not-allowed', fontFamily: 'Inter, sans-serif',
             }}
           >
-            Challenge a Friend
+            Coming Soon
           </button>
         </div>
 

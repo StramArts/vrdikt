@@ -113,6 +113,8 @@ export default function Upload() {
           spending_data:    { raw: transactionText.slice(0, 2000) },
           personality_type: personalityType,
           score,
+          roast_lines:      roastLines,
+          savage_insight:   savageInsight,
         }).then(({ error: dbErr }) => {
           if (dbErr) console.warn('[VRDIKT] Failed to save roast:', dbErr.message)
         })
