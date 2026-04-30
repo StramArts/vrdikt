@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
+import { calculateXP } from '../lib/challenges'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -206,6 +209,7 @@ function downloadCanvas(canvas) {
 export default function Roast() {
   const navigate  = useNavigate()
   const location  = useLocation()
+  const { user }  = useAuth()
   const { roastLines = [], personalityType = null, score = 35, savageInsight = null } =
     location.state || {}
 
@@ -221,6 +225,8 @@ export default function Roast() {
   const [showInsight,     setShowInsight]      = useState(false)
   const [showActions,     setShowActions]      = useState(false)
   const [sharing,         setSharing]          = useState(false)
+  const [xpToast,         setXpToast]          = useState(false)
+  const [xpData,          setXpData]           = useState(null)
 
   const typingCancelledRef = useRef(false)
 
@@ -289,6 +295,25 @@ export default function Roast() {
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
   }, [scoreStarted, score])
+
+  // ── XP toast (fires once when actions appear) ────────────────────────────────
+  useEffect(() => {
+    if (!showActions || !user) return
+    let cancelled = false
+    ;(async () => {
+      const { data } = await supabase
+        .from('roasts')
+        .select('created_at, score')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+      if (cancelled) return
+      const xp = calculateXP(data ?? [])
+      setXpData(xp)
+      setXpToast(true)
+      setTimeout(() => { if (!cancelled) setXpToast(false) }, 3500)
+    })()
+    return () => { cancelled = true }
+  }, [showActions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── share handler ────────────────────────────────────────────────────────────
   async function handleShare() {
@@ -487,6 +512,24 @@ export default function Roast() {
         </button>
 
         <button
+          onClick={() => {
+            const text = `I just got financially roasted by VRDIKT 😭 Score: ${score}/100. "${roastLines[0] ?? ''}" Get roasted at vrdikt.vercel.app`
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+          }}
+          style={{
+            width: '100%', background: 'transparent',
+            border: '1px solid #25D366', borderRadius: '14px', padding: '15px 24px',
+            color: '#25D366', fontSize: '15px', fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            transition: 'background 0.2s, color 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37,211,102,0.08)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+        >
+          💬 Share on WhatsApp
+        </button>
+
+        <button
           onClick={() => navigate('/upload')}
           style={{
             width: '100%', background: 'transparent',
@@ -514,6 +557,37 @@ export default function Roast() {
         >
           Back to dashboard
         </button>
+      </div>
+
+      {/* ── XP Toast ── */}
+      <div style={{
+        position: 'fixed', bottom: '28px', left: '50%',
+        transform: xpToast ? 'translate(-50%, 0)' : 'translate(-50%, 24px)',
+        opacity: xpToast ? 1 : 0,
+        transition: 'opacity 0.45s ease, transform 0.45s ease',
+        pointerEvents: 'none', zIndex: 99,
+        background: '#F5C518', borderRadius: '40px',
+        padding: '12px 22px',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        boxShadow: '0 8px 32px rgba(245,197,24,0.35)',
+        whiteSpace: 'nowrap',
+      }}>
+        <span style={{ fontSize: '18px' }}>🔥</span>
+        <span style={{ color: '#0A0A0A', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
+          +10 XP earned
+        </span>
+        {xpData && (
+          <>
+            <span style={{ color: 'rgba(10,10,10,0.35)', fontSize: '13px' }}>·</span>
+            <span style={{ color: '#0A0A0A', fontSize: '13px', fontWeight: 600 }}>
+              Total: {xpData.xp} XP
+            </span>
+            <span style={{ color: 'rgba(10,10,10,0.35)', fontSize: '13px' }}>·</span>
+            <span style={{ color: '#0A0A0A', fontSize: '13px', fontWeight: 600 }}>
+              {xpData.levelName}
+            </span>
+          </>
+        )}
       </div>
     </div>
   )
