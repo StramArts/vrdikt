@@ -37,6 +37,40 @@ function calcStreak(roasts) {
   return count
 }
 
+const SPEND_CATEGORIES = [
+  { name: 'Food Delivery', color: '#FF3B30', keywords: ['zomato', 'swiggy', 'dunzo', 'eatfit', 'box8'] },
+  { name: 'Groceries',     color: '#F5C518', keywords: ['blinkit', 'zepto', 'bigbasket', 'instamart', 'grofers', 'jiomart'] },
+  { name: 'Shopping',      color: '#FF9F0A', keywords: ['amazon', 'flipkart', 'meesho', 'myntra', 'ajio', 'nykaa', 'snapdeal'] },
+  { name: 'Entertainment', color: '#BF5AF2', keywords: ['netflix', 'prime video', 'hotstar', 'spotify', 'youtube', 'jiosaavn', 'zee5', 'jiocinema'] },
+  { name: 'Transport',     color: '#30D158', keywords: ['uber', 'ola', 'rapido', 'petrol', 'irctc', 'makemytrip', 'goibibo', 'redbus'] },
+  { name: 'Finance / EMI', color: '#30B0C7', keywords: ['emi', 'sip', 'lic ', ' loan', 'insurance', 'policy'] },
+]
+
+function parseSpendingCategories(raw) {
+  if (!raw || typeof raw !== 'string') return null
+  const totals = {}
+  for (const line of raw.split('\n')) {
+    const amountMatch = line.match(/₹\s*([\d,]+)/)
+    if (!amountMatch) continue
+    const amount = parseInt(amountMatch[1].replace(/,/g, ''), 10)
+    if (!amount || amount <= 0) continue
+    const lower = line.toLowerCase()
+    let matched = false
+    for (const cat of SPEND_CATEGORIES) {
+      if (cat.keywords.some(kw => lower.includes(kw))) {
+        totals[cat.name] = (totals[cat.name] ?? 0) + amount
+        matched = true
+        break
+      }
+    }
+    if (!matched) totals['Other'] = (totals['Other'] ?? 0) + amount
+  }
+  if (!Object.keys(totals).length) return null
+  return Object.entries(totals)
+    .map(([name, amount]) => ({ name, amount, color: SPEND_CATEGORIES.find(c => c.name === name)?.color ?? '#555' }))
+    .sort((a, b) => b.amount - a.amount)
+}
+
 // ─── sub-components ───────────────────────────────────────────────────────────
 
 function StatCard({ label, value, accent }) {
@@ -46,21 +80,131 @@ function StatCard({ label, value, accent }) {
       borderRadius: '16px', padding: '16px 14px',
       display: 'flex', flexDirection: 'column', gap: '6px',
     }}>
-      <span style={{ color: '#333', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em' }}>
-        {label}
-      </span>
-      <span style={{ color: accent, fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em' }}>
-        {value}
-      </span>
+      <span style={{ color: '#333', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em' }}>{label}</span>
+      <span style={{ color: accent, fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em' }}>{value}</span>
     </div>
   )
 }
 
+function SpendingBreakdown({ latestRoast }) {
+  const raw = latestRoast?.spending_data?.raw ?? null
+  const categories = raw ? parseSpendingCategories(raw) : null
+  const max = categories ? Math.max(...categories.map(c => c.amount)) : 0
+
+  return (
+    <div style={{
+      background: '#0D0D0D', border: '1px solid #161616',
+      borderRadius: '20px', padding: '22px',
+    }}>
+      <p style={{
+        color: '#444', fontSize: '10px', letterSpacing: '0.2em',
+        textTransform: 'uppercase', fontWeight: 700, margin: '0 0 18px',
+      }}>
+        Spending Breakdown
+      </p>
+
+      {!categories ? (
+        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          <p style={{ color: '#2A2A2A', fontSize: '13px', margin: '0 0 4px' }}>No breakdown available yet.</p>
+          <p style={{ color: '#222', fontSize: '12px', margin: 0 }}>
+            Submit spending data with ₹ amounts to see category breakdown.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {categories.map(({ name, amount, color }) => (
+            <div key={name}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <span style={{ color: '#888', fontSize: '12px', fontWeight: 600 }}>{name}</span>
+                <span style={{ color: color, fontSize: '12px', fontWeight: 700 }}>
+                  ₹{amount.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div style={{ background: '#1A1A1A', borderRadius: '4px', height: '5px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${(amount / max) * 100}%`,
+                  background: color,
+                  borderRadius: '4px',
+                  transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
+                }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CompactActiveCard({ emoji, name, progress, total, status, message }) {
+  const statusColors = { active: '#F5C518', failed: '#FF3B30', completed: '#30D158' }
+  const statusColor = statusColors[status] ?? '#F5C518'
+  const pct = total > 0 ? Math.min((progress / total) * 100, 100) : 0
+  return (
+    <div style={{
+      background: '#111', border: '1px solid rgba(245,197,24,0.15)',
+      borderRadius: '18px', padding: '18px',
+      display: 'flex', flexDirection: 'column', gap: '10px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <span style={{ fontSize: '18px' }}>{emoji}</span>
+          <p style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>{name}</p>
+        </div>
+        <span style={{
+          background: `${statusColor}15`, border: `1px solid ${statusColor}44`,
+          borderRadius: '20px', padding: '2px 8px',
+          color: statusColor, fontSize: '9px', fontWeight: 700,
+          letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
+        }}>
+          {status}
+        </span>
+      </div>
+      <div>
+        <div style={{ background: '#1A1A1A', borderRadius: '3px', height: '4px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', width: `${pct}%`, background: statusColor,
+            borderRadius: '3px', transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
+          }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+          <span style={{ color: '#2A2A2A', fontSize: '10px' }}>{message}</span>
+          <span style={{ color: statusColor, fontSize: '10px', fontWeight: 700 }}>Day {progress}/{total}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CompactLockedCard({ emoji, name }) {
+  return (
+    <div style={{
+      background: '#0A0A0A', border: '1px solid #141414',
+      borderRadius: '18px', padding: '18px',
+      position: 'relative', display: 'flex', flexDirection: 'column', gap: '8px',
+      opacity: 0.55,
+    }}>
+      <div style={{
+        position: 'absolute', top: '12px', right: '12px',
+        background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
+        borderRadius: '20px', padding: '2px 7px',
+        color: '#F5C518', fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+      }}>
+        SOON
+      </div>
+      <span style={{ fontSize: '20px' }}>{emoji}</span>
+      <p style={{ color: '#444', fontSize: '13px', fontWeight: 800, margin: 0, paddingRight: '44px' }}>{name}</p>
+      <span style={{ position: 'absolute', bottom: '12px', right: '12px', fontSize: '14px' }}>🔒</span>
+    </div>
+  )
+}
+
+// Full-size cards used in the Challenges tab only
 function ActiveChallengeCard({ emoji, name, description, progress, total, status, message }) {
   const statusColors = { active: '#F5C518', failed: '#FF3B30', completed: '#30D158' }
   const statusColor = statusColors[status] ?? '#F5C518'
   const pct = total > 0 ? Math.min((progress / total) * 100, 100) : 0
-
   return (
     <div style={{
       background: '#111', border: '1px solid rgba(245,197,24,0.15)',
@@ -71,13 +215,10 @@ function ActiveChallengeCard({ emoji, name, description, progress, total, status
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '24px' }}>{emoji}</span>
-          <p style={{ color: '#F0F0F0', fontSize: '16px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
-            {name}
-          </p>
+          <p style={{ color: '#F0F0F0', fontSize: '16px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>{name}</p>
         </div>
         <span style={{
-          background: `${statusColor}15`,
-          border: `1px solid ${statusColor}44`,
+          background: `${statusColor}15`, border: `1px solid ${statusColor}44`,
           borderRadius: '20px', padding: '3px 10px',
           color: statusColor, fontSize: '10px', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
@@ -89,16 +230,13 @@ function ActiveChallengeCard({ emoji, name, description, progress, total, status
       <div>
         <div style={{ background: '#1A1A1A', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
           <div style={{
-            height: '100%', width: `${pct}%`,
-            background: statusColor, borderRadius: '4px',
+            height: '100%', width: `${pct}%`, background: statusColor, borderRadius: '4px',
             transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
           }} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '7px' }}>
           <span style={{ color: '#333', fontSize: '12px' }}>{message}</span>
-          <span style={{ color: statusColor, fontSize: '12px', fontWeight: 700 }}>
-            Day {progress} / {total}
-          </span>
+          <span style={{ color: statusColor, fontSize: '12px', fontWeight: 700 }}>Day {progress} / {total}</span>
         </div>
       </div>
     </div>
@@ -117,19 +255,14 @@ function LockedChallengeCard({ emoji, name, description, subtitle }) {
         position: 'absolute', top: '16px', right: '16px',
         background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
         borderRadius: '20px', padding: '2px 9px',
-        color: '#F5C518', fontSize: '9px', fontWeight: 700,
-        letterSpacing: '0.14em', textTransform: 'uppercase',
+        color: '#F5C518', fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
       }}>
         COMING SOON
       </div>
       <span style={{ fontSize: '26px' }}>{emoji}</span>
-      <p style={{ color: '#555', fontSize: '15px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em', paddingRight: '90px' }}>
-        {name}
-      </p>
+      <p style={{ color: '#555', fontSize: '15px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em', paddingRight: '90px' }}>{name}</p>
       <p style={{ color: '#2A2A2A', fontSize: '13px', margin: 0, lineHeight: 1.4 }}>{description}</p>
-      {subtitle && (
-        <p style={{ color: '#222', fontSize: '12px', margin: 0, fontStyle: 'italic' }}>{subtitle}</p>
-      )}
+      {subtitle && <p style={{ color: '#222', fontSize: '12px', margin: 0, fontStyle: 'italic' }}>{subtitle}</p>}
       <span style={{ position: 'absolute', bottom: '18px', right: '18px', fontSize: '20px' }}>🔒</span>
     </div>
   )
@@ -138,6 +271,8 @@ function LockedChallengeCard({ emoji, name, description, subtitle }) {
 // ─── tab views ────────────────────────────────────────────────────────────────
 
 function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
+  const latestRoast = roasts[0] ?? null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
@@ -148,6 +283,35 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
         gap: '10px',
       }}>
         {stats.map(s => <StatCard key={s.label} {...s} />)}
+      </div>
+
+      {/* Spending Breakdown */}
+      <SpendingBreakdown latestRoast={latestRoast} />
+
+      {/* Active Challenges mini grid */}
+      <div>
+        <p style={{
+          color: '#444', fontSize: '10px', letterSpacing: '0.2em',
+          textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px',
+        }}>
+          Active Challenges
+        </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: '10px',
+        }}>
+          <CompactActiveCard
+            emoji="🍕"
+            name="Zomato Detox"
+            progress={zomato?.daysClean ?? 0}
+            total={7}
+            status={zomato?.status ?? 'active'}
+            message={zomato?.message ?? 'Submit spending to track'}
+          />
+          <CompactLockedCard emoji="💰" name="Savings Sprint" />
+          <CompactLockedCard emoji="📱" name="Subscription Audit" />
+        </div>
       </div>
 
       {/* Roast History */}
@@ -195,7 +359,6 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
               const preview = r.roast_lines?.[0] ?? parsed.roastLines?.[0] ?? '—'
               const personality = r.personality_type ?? parsed.personalityType
               const sc = r.score ?? parsed.score
-
               return (
                 <div key={r.id} style={{
                   background: '#0D0D0D', border: '1px solid #161616',
@@ -208,8 +371,7 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
                       <span style={{ color: '#333', fontSize: '12px' }}>{formatDate(r.created_at)}</span>
                       {personality && (
                         <span style={{
-                          background: 'rgba(245,197,24,0.08)',
-                          border: '1px solid rgba(245,197,24,0.15)',
+                          background: 'rgba(245,197,24,0.08)', border: '1px solid rgba(245,197,24,0.15)',
                           borderRadius: '20px', padding: '2px 9px',
                           color: '#F5C518', fontSize: '11px', fontWeight: 600,
                         }}>
@@ -282,7 +444,6 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
 function ChallengesTab({ zomato }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-
       <div>
         <h2 style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 6px' }}>
           ACTIVE CHALLENGES
@@ -293,8 +454,6 @@ function ChallengesTab({ zomato }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-
-        {/* Challenge 1 — live */}
         <ActiveChallengeCard
           emoji="🍕"
           name="Zomato Detox"
@@ -304,31 +463,23 @@ function ChallengesTab({ zomato }) {
           status={zomato?.status ?? 'active'}
           message={zomato?.message ?? 'Submit your spending to start tracking'}
         />
-
-        {/* Challenge 2 — locked */}
         <LockedChallengeCard
           emoji="💰"
           name="Savings Sprint"
           description="Save at least 20% of your income this month."
           subtitle="We're building the tracking for this. Check back soon."
         />
-
-        {/* Challenge 3 — locked */}
         <LockedChallengeCard
           emoji="📱"
           name="Subscription Audit"
           description="Find and cancel one subscription you forgot about."
           subtitle="We're building the tracking for this. Check back soon."
         />
-
-        {/* Challenge 4 — locked */}
         <LockedChallengeCard
           emoji="⚡"
           name="No Impulse Buys"
           description="No unplanned purchases over ₹500 for 14 days."
         />
-
-        {/* Challenge 5 — locked */}
         <LockedChallengeCard
           emoji="📈"
           name="Investment Initiation"
@@ -353,7 +504,7 @@ export default function Dashboard() {
     if (!user) return
     supabase
       .from('roasts')
-      .select('id, created_at, roast_text, personality_type, score, roast_lines')
+      .select('id, created_at, roast_text, personality_type, score, roast_lines, spending_data')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setRoasts(data ?? []))
@@ -365,22 +516,22 @@ export default function Dashboard() {
   }
 
   const loading = roasts === null
-  const scores = roasts?.map(r => r.score).filter(s => typeof s === 'number') ?? []
+  const scores     = roasts?.map(r => r.score).filter(s => typeof s === 'number') ?? []
   const streak     = calcStreak(roasts ?? [])
   const worstScore = scores.length ? Math.min(...scores) : null
   const bestScore  = scores.length ? Math.max(...scores) : null
   const zomato     = roasts ? checkZomatoDetox(roasts) : null
 
   const STATS = [
-    { label: 'Total Roasts',   value: loading ? '—' : roasts.length,                       accent: '#FF3B30' },
-    { label: 'Current Streak', value: loading ? '—' : `${streak}d`,                         accent: '#F5C518' },
-    { label: 'Worst Score',    value: loading || worstScore === null ? '—' : worstScore,     accent: '#FF3B30' },
-    { label: 'Best Score',     value: loading || bestScore  === null ? '—' : bestScore,      accent: '#30D158' },
+    { label: 'Total Roasts',   value: loading ? '—' : roasts.length,                   accent: '#FF3B30' },
+    { label: 'Current Streak', value: loading ? '—' : `${streak}d`,                     accent: '#F5C518' },
+    { label: 'Worst Score',    value: loading || worstScore === null ? '—' : worstScore, accent: '#FF3B30' },
+    { label: 'Best Score',     value: loading || bestScore  === null ? '—' : bestScore,  accent: '#30D158' },
   ]
 
   const TABS = [
-    { id: 'overview',    label: 'OVERVIEW' },
-    { id: 'challenges',  label: 'CHALLENGES' },
+    { id: 'overview',   label: 'OVERVIEW' },
+    { id: 'challenges', label: 'CHALLENGES' },
   ]
 
   return (
@@ -439,7 +590,7 @@ export default function Dashboard() {
         display: 'flex', flexDirection: 'column', gap: '28px',
       }}>
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
             <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
@@ -461,8 +612,7 @@ export default function Dashboard() {
               cursor: 'pointer', fontFamily: 'Inter, sans-serif',
               letterSpacing: '-0.01em', whiteSpace: 'nowrap',
               boxShadow: '0 0 32px rgba(245,197,24,0.2)',
-              transition: 'opacity 0.15s, transform 0.15s',
-              flexShrink: 0,
+              transition: 'opacity 0.15s, transform 0.15s', flexShrink: 0,
             }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)' }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
@@ -471,7 +621,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* ── Tab Pills ── */}
+        {/* Tab Pills */}
         <div style={{ display: 'flex', gap: '8px' }}>
           {TABS.map(({ id, label }) => {
             const active = tab === id
@@ -482,11 +632,9 @@ export default function Dashboard() {
                 style={{
                   background: active ? '#F5C518' : 'transparent',
                   border: `1px solid ${active ? '#F5C518' : '#1E1E1E'}`,
-                  borderRadius: '999px',
-                  padding: '8px 20px',
+                  borderRadius: '999px', padding: '8px 20px',
                   color: active ? '#0A0A0A' : '#555',
-                  fontSize: '12px', fontWeight: 800,
-                  letterSpacing: '0.08em',
+                  fontSize: '12px', fontWeight: 800, letterSpacing: '0.08em',
                   cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                   transition: 'background 0.15s, color 0.15s, border-color 0.15s',
                 }}
@@ -499,7 +647,7 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* ── Tab Content ── */}
+        {/* Tab Content */}
         {tab === 'overview' && (
           <OverviewTab
             roasts={roasts ?? []}
