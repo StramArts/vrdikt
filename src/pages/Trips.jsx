@@ -137,7 +137,7 @@ export default function Trips() {
         name: createForm.name.trim(),
         description: createForm.description.trim() || null,
         currency: createForm.currency,
-        budget: createForm.budget ? parseFloat(createForm.budget) : null,
+        total_budget: createForm.budget ? parseFloat(createForm.budget) : null,
         start_date: createForm.start_date || null,
         end_date: createForm.end_date || null,
         invite_code: code,
