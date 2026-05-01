@@ -177,6 +177,20 @@ export default function CoupleMode() {
       ])
       setMyRoasts(myR ?? [])
       setPartnerRoasts(partnerR ?? [])
+    } else {
+      // Restore any pending code this user already generated (survives page refresh)
+      const { data: pending } = await supabase
+        .from('couple_links')
+        .select('invite_code, expires_at')
+        .eq('initiator_id', user.id)
+        .eq('status', 'pending')
+        .gt('expires_at', new Date().toISOString())
+        .limit(1)
+
+      if (pending?.[0]) {
+        setMyCode(pending[0].invite_code)
+        setMyCodeExpiry(pending[0].expires_at)
+      }
     }
 
     setLoading(false)
@@ -414,7 +428,6 @@ export default function CoupleMode() {
 
         {/* Hero */}
         <div style={{ textAlign: 'center', paddingTop: '8px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '14px' }}>💑</div>
           <h2 style={{
             fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 900,
             letterSpacing: '-0.04em', margin: '0 0 8px', color: '#F0F0F0',
@@ -426,61 +439,76 @@ export default function CoupleMode() {
           </p>
         </div>
 
-        {/* Two action panels */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+        {/* Person A: has a pending code — show ONLY the code, no enter-code panel */}
+        {myCode ? (
+          <div style={{ maxWidth: 400, margin: '0 auto', width: '100%' }}>
+            <div style={{
+              background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.2)',
+              borderRadius: '20px', padding: '28px 24px',
+              display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'center',
+            }}>
+              <div>
+                <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+                  Your Invite Code
+                </p>
+                <p style={{ color: '#333', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
+                  Share this with your partner. They enter it on their end.
+                </p>
+              </div>
 
-          {/* Generate code panel */}
-          <div style={{
-            background: '#0D0D0D', border: '1px solid #1A1A1A',
-            borderRadius: '20px', padding: '24px',
-            display: 'flex', flexDirection: 'column', gap: '16px',
-          }}>
-            <div>
-              <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
-                Generate Invite Code
+              <div style={{
+                background: '#111', border: '1px solid rgba(245,197,24,0.2)',
+                borderRadius: '14px', padding: '22px 18px',
+              }}>
+                <p style={{
+                  color: '#F5C518', fontSize: '38px', fontWeight: 900,
+                  letterSpacing: '0.18em', margin: '0 0 14px', fontFamily: 'monospace',
+                }}>
+                  {myCode}
+                </p>
+                <button
+                  onClick={copyCode}
+                  style={{
+                    background: copied ? 'rgba(48,209,88,0.1)' : 'rgba(245,197,24,0.08)',
+                    border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(245,197,24,0.2)'}`,
+                    borderRadius: '8px', padding: '8px 22px',
+                    color: copied ? '#30D158' : '#F5C518',
+                    fontSize: '13px', fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {copied ? '✓ Copied!' : 'Copy Code'}
+                </button>
+              </div>
+
+              <p style={{ color: '#333', fontSize: '12px', margin: 0, fontFeatureSettings: '"tnum"' }}>
+                Expires in <span style={{ color: '#F5C518', fontWeight: 700 }}>{countdown}</span>
               </p>
-              <p style={{ color: '#333', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
-                Share this code with your partner. Expires in 24 hours.
+
+              <p style={{ color: '#2A2A2A', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
+                Once your partner enters this code, you'll both see the linked dashboard automatically.
               </p>
             </div>
+          </div>
+        ) : (
+          /* Person B (or Person A before generating): show both panels */
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
 
-            {myCode ? (
-              <>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    background: '#111', border: '1px solid rgba(245,197,24,0.2)',
-                    borderRadius: '14px', padding: '18px 14px', marginBottom: '10px',
-                  }}>
-                    <p style={{
-                      color: '#F5C518', fontSize: '34px', fontWeight: 900,
-                      letterSpacing: '0.15em', margin: '0 0 10px', fontFamily: 'monospace',
-                    }}>
-                      {myCode}
-                    </p>
-                    <button
-                      onClick={copyCode}
-                      style={{
-                        background: copied ? 'rgba(48,209,88,0.1)' : 'rgba(245,197,24,0.08)',
-                        border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(245,197,24,0.2)'}`,
-                        borderRadius: '8px', padding: '6px 18px',
-                        color: copied ? '#30D158' : '#F5C518',
-                        fontSize: '12px', fontWeight: 700,
-                        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {copied ? '✓ Copied!' : 'Copy Code'}
-                    </button>
-                  </div>
-                  <p style={{ color: '#333', fontSize: '11px', margin: 0, fontFeatureSettings: '"tnum"' }}>
-                    Expires in {countdown}
-                  </p>
-                </div>
-                <p style={{ color: '#2A2A2A', fontSize: '11px', textAlign: 'center', margin: 0 }}>
-                  Send this to your partner — they enter it on their side.
+            {/* Generate code panel */}
+            <div style={{
+              background: '#0D0D0D', border: '1px solid #1A1A1A',
+              borderRadius: '20px', padding: '24px',
+              display: 'flex', flexDirection: 'column', gap: '16px',
+            }}>
+              <div>
+                <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+                  Generate Invite Code
                 </p>
-              </>
-            ) : (
+                <p style={{ color: '#333', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
+                  Creates a 6-character code for your partner to enter. Expires in 24 hours.
+                </p>
+              </div>
               <button
                 onClick={handleGenerateCode}
                 disabled={generatingCode}
@@ -494,62 +522,62 @@ export default function CoupleMode() {
               >
                 {generatingCode ? 'Generating…' : 'Generate Code'}
               </button>
-            )}
-          </div>
-
-          {/* Enter code panel */}
-          <div style={{
-            background: '#0D0D0D', border: '1px solid #1A1A1A',
-            borderRadius: '20px', padding: '24px',
-            display: 'flex', flexDirection: 'column', gap: '16px',
-          }}>
-            <div>
-              <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
-                Enter Partner's Code
-              </p>
-              <p style={{ color: '#333', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
-                Have your partner generate a code and share it with you.
-              </p>
             </div>
 
-            <input
-              value={partnerCode}
-              onChange={e => { setPartnerCode(e.target.value.toUpperCase().slice(0, 6)); setLinkError(null) }}
-              placeholder="X7K2P9"
-              maxLength={6}
-              style={{
-                background: '#0A0A0A', border: '1px solid #1E1E1E', borderRadius: '10px',
-                padding: '13px 16px', color: '#F0F0F0',
-                fontSize: '26px', fontWeight: 800, letterSpacing: '0.22em',
-                fontFamily: 'monospace', textAlign: 'center', outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={e => { e.currentTarget.style.borderColor = '#F5C518' }}
-              onBlur={e => { e.currentTarget.style.borderColor = '#1E1E1E' }}
-            />
+            {/* Enter code panel */}
+            <div style={{
+              background: '#0D0D0D', border: '1px solid #1A1A1A',
+              borderRadius: '20px', padding: '24px',
+              display: 'flex', flexDirection: 'column', gap: '16px',
+            }}>
+              <div>
+                <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+                  Enter Partner's Code
+                </p>
+                <p style={{ color: '#333', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
+                  Have your partner generate a code and share it with you.
+                </p>
+              </div>
 
-            {linkError && (
-              <p style={{ color: '#FF3B30', fontSize: '12px', margin: 0, textAlign: 'center', lineHeight: 1.4 }}>
-                {linkError}
-              </p>
-            )}
+              <input
+                value={partnerCode}
+                onChange={e => { setPartnerCode(e.target.value.toUpperCase().slice(0, 6)); setLinkError(null) }}
+                placeholder="X7K2P9"
+                maxLength={6}
+                style={{
+                  background: '#0A0A0A', border: '1px solid #1E1E1E', borderRadius: '10px',
+                  padding: '13px 16px', color: '#F0F0F0',
+                  fontSize: '26px', fontWeight: 800, letterSpacing: '0.22em',
+                  fontFamily: 'monospace', textAlign: 'center', outline: 'none',
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#F5C518' }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#1E1E1E' }}
+              />
 
-            <button
-              onClick={handleLinkUp}
-              disabled={partnerCode.length < 6 || linking}
-              style={{
-                background: partnerCode.length === 6 ? '#F5C518' : '#141414',
-                border: 'none', borderRadius: '12px', padding: '13px',
-                color: partnerCode.length === 6 ? '#0A0A0A' : '#2A2A2A',
-                fontSize: '14px', fontWeight: 800,
-                cursor: partnerCode.length === 6 ? 'pointer' : 'not-allowed',
-                fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
-              }}
-            >
-              {linking ? 'Linking…' : 'Link Up 💑'}
-            </button>
+              {linkError && (
+                <p style={{ color: '#FF3B30', fontSize: '12px', margin: 0, textAlign: 'center', lineHeight: 1.4 }}>
+                  {linkError}
+                </p>
+              )}
+
+              <button
+                onClick={handleLinkUp}
+                disabled={partnerCode.length < 6 || linking}
+                style={{
+                  background: partnerCode.length === 6 ? '#F5C518' : '#141414',
+                  border: 'none', borderRadius: '12px', padding: '13px',
+                  color: partnerCode.length === 6 ? '#0A0A0A' : '#2A2A2A',
+                  fontSize: '14px', fontWeight: 800,
+                  cursor: partnerCode.length === 6 ? 'pointer' : 'not-allowed',
+                  fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+                }}
+              >
+                {linking ? 'Linking…' : 'Link Up'}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* PRO nudge */}
         <div style={{
@@ -601,7 +629,6 @@ export default function CoupleMode() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '22px' }}>💑</span>
               <h3 style={{ color: '#F0F0F0', fontSize: '18px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
                 You & {partnerDisplay}
               </h3>
