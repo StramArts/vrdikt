@@ -16,81 +16,40 @@ const TIERS = [
     price: '₹0',
     period: 'forever',
     popular: false,
-    coming: false,
-    features: [
-      '1 manual roast per month',
-      'Paste or upload data yourself',
-      'Basic roast only',
-    ],
-    locked: [
-      'No spending personality',
-      'No roast history',
-      'No challenges',
-    ],
     cta: 'Get Roasted Free',
     ctaLink: '/upload',
+    features: [
+      '3 roasts/month',
+      'Full roast experience',
+      'Roast Card — always free',
+      'Basic spending breakdown',
+      '1 active challenge',
+      'Last 3 roasts history',
+      'Basic XP',
+    ],
   },
   {
-    id: '499',
-    name: 'THE ROASTED',
-    price: '₹499',
+    id: 'pro',
+    name: 'PRO',
+    price: '$4.99',
     period: '/month',
     popular: true,
-    coming: true,
-    features: [
-      'Automatic transaction tracking',
-      'Monthly auto-roast on the 1st',
-      'Spending Personality',
-      'Savings Challenge with automatic tracking',
-      'Morning Burn notifications',
-      'Roast Card generation and sharing',
-      '3 month history',
-      'Basic savings suggestions',
-    ],
-    locked: [],
     cta: 'Coming Soon',
     ctaLink: null,
-  },
-  {
-    id: '899',
-    name: 'THE BRUTALLY HONEST',
-    price: '₹899',
-    period: '/month',
-    popular: false,
-    coming: true,
     features: [
-      'Everything in ₹499',
-      'Weekly spending check-ins',
-      'Merchant Hall of Shame',
-      'Category Deep Dive',
-      'VRDIKT Score',
+      'Unlimited roasts',
+      'Full roast history',
+      'All challenges unlocked',
+      'Full XP & streaks',
+      'All badges',
+      'PDF parsing',
+      'Monthly Report Card',
       'Spending Personality deep dive',
-      'Savings Pot visual',
-      'Friend Comparisons',
+      'Morning Burn notification',
+      'Merchant categorisation',
+      'Group Trip Tracker',
+      'Couple Mode',
     ],
-    locked: [],
-    cta: 'Coming Soon',
-    ctaLink: null,
-  },
-  {
-    id: '1299',
-    name: 'THE REFORMED',
-    price: '₹1299',
-    period: '/month',
-    popular: false,
-    coming: true,
-    features: [
-      'Everything in ₹899',
-      'Predictive Alerts',
-      'AI Financial Advisor Mode',
-      'The Spending Duel',
-      'Priority roast quality',
-      'The Annual VRDIKT Report',
-      'Early access to all new features',
-    ],
-    locked: [],
-    cta: 'Coming Soon',
-    ctaLink: null,
   },
 ]
 
@@ -118,19 +77,17 @@ export default function Pricing() {
         >
           <Logo />
         </button>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              background: '#F5C518', border: 'none', borderRadius: '8px',
-              padding: '7px 16px', color: '#0A0A0A',
-              fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            Dashboard
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/dashboard')}
+          style={{
+            background: '#F5C518', border: 'none', borderRadius: '8px',
+            padding: '7px 16px', color: '#0A0A0A',
+            fontSize: '13px', fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          Dashboard
+        </button>
       </nav>
 
       {/* Hero */}
@@ -158,7 +115,7 @@ export default function Pricing() {
         display: 'grid',
         gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
         gap: '14px',
-        maxWidth: 900, width: '100%',
+        maxWidth: 700, width: '100%',
         margin: '0 auto',
         padding: isMobile ? '0 16px 64px' : '0 24px 80px',
         alignItems: 'start',
@@ -173,7 +130,7 @@ export default function Pricing() {
               borderRadius: '24px',
               padding: '28px 24px',
               display: 'flex', flexDirection: 'column', gap: '20px',
-              boxShadow: tier.popular ? '0 0 48px rgba(245,197,24,0.08)' : 'none',
+              boxShadow: tier.popular ? '0 0 56px rgba(245,197,24,0.1)' : 'none',
             }}
           >
             {tier.popular && (
@@ -188,24 +145,13 @@ export default function Pricing() {
                 Most Popular
               </div>
             )}
-            {tier.coming && (
-              <div style={{
-                position: 'absolute', top: '16px', right: '16px',
-                background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
-                borderRadius: '20px', padding: '2px 9px',
-                color: '#F5C518', fontSize: '9px', fontWeight: 700,
-                letterSpacing: '0.14em', textTransform: 'uppercase',
-              }}>
-                COMING SOON
-              </div>
-            )}
 
             {/* Header */}
             <div>
               <p style={{
-                color: '#F5C518', fontSize: '11px', letterSpacing: '0.18em',
+                color: tier.popular ? '#F5C518' : '#888',
+                fontSize: '11px', letterSpacing: '0.18em',
                 textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px',
-                paddingRight: tier.coming ? '80px' : 0,
               }}>
                 {tier.name}
               </p>
@@ -221,13 +167,7 @@ export default function Pricing() {
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '9px' }}>
               {tier.features.map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', color: '#C0C0C0', fontSize: '13px' }}>
-                  <span style={{ color: '#F5C518', fontSize: '11px', marginTop: '2px', flexShrink: 0 }}>✓</span>
-                  {f}
-                </li>
-              ))}
-              {tier.locked.map(f => (
-                <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', color: '#2A2A2A', fontSize: '13px' }}>
-                  <span style={{ fontSize: '11px', marginTop: '2px', flexShrink: 0 }}>🔒</span>
+                  <span style={{ color: tier.popular ? '#F5C518' : '#555', fontSize: '11px', marginTop: '2px', flexShrink: 0 }}>✓</span>
                   {f}
                 </li>
               ))}
@@ -235,20 +175,20 @@ export default function Pricing() {
 
             {/* CTA */}
             <button
-              onClick={() => !tier.coming && navigate(tier.ctaLink)}
-              disabled={tier.coming}
+              onClick={() => tier.ctaLink && navigate(tier.ctaLink)}
+              disabled={!tier.ctaLink}
               style={{
                 width: '100%',
-                background: tier.coming ? 'transparent' : '#F5C518',
-                border: tier.coming ? '1px solid #1E1E1E' : 'none',
+                background: tier.ctaLink ? '#F5C518' : 'transparent',
+                border: tier.ctaLink ? 'none' : '1px solid #1E1E1E',
                 borderRadius: '12px', padding: '13px',
-                color: tier.coming ? '#333' : '#0A0A0A',
+                color: tier.ctaLink ? '#0A0A0A' : '#333',
                 fontSize: '14px', fontWeight: 800,
-                cursor: tier.coming ? 'not-allowed' : 'pointer',
+                cursor: tier.ctaLink ? 'pointer' : 'not-allowed',
                 fontFamily: 'Inter, sans-serif',
                 transition: 'opacity 0.15s',
               }}
-              onMouseEnter={e => { if (!tier.coming) e.currentTarget.style.opacity = '0.85' }}
+              onMouseEnter={e => { if (tier.ctaLink) e.currentTarget.style.opacity = '0.85' }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
             >
               {tier.cta}

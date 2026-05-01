@@ -563,6 +563,103 @@ function ChallengesTab({ roasts, profile, zomato, navigate }) {
   )
 }
 
+function CoupleModeTab({ navigate }) {
+  const FEATURES = [
+    { emoji: '💸', text: 'Shared spending dashboard — both partners, one view' },
+    { emoji: '🔥', text: 'Couple Roast — get judged together, suffer together' },
+    { emoji: '🏆', text: 'Who spent more this month? (loser does dishes)' },
+    { emoji: '🎯', text: 'Joint savings goals & challenge tracking' },
+    { emoji: '📊', text: 'His vs. Her spending breakdown' },
+    { emoji: '💌', text: 'Surprise spending alerts — no more secret Zomato binges' },
+    { emoji: '🗓️', text: 'Monthly Couple Report Card' },
+    { emoji: '✈️', text: 'Group Trip Tracker built-in' },
+  ]
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{
+        position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(145deg, #0F0F0F 0%, #0A0A0A 100%)',
+        border: '1px solid #C9A227',
+        borderRadius: '24px',
+        padding: '40px 32px',
+        boxShadow: '0 0 80px rgba(245,197,24,0.07), inset 0 1px 0 rgba(245,197,24,0.08)',
+      }}>
+        {/* ambient glow */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(245,197,24,0.06) 0%, transparent 65%)',
+        }} />
+
+        {/* Badge */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}>
+          <span style={{
+            background: 'rgba(201,162,39,0.12)', border: '1px solid rgba(201,162,39,0.35)',
+            borderRadius: '999px', padding: '5px 16px',
+            color: '#C9A227', fontSize: '10px', fontWeight: 800,
+            letterSpacing: '0.2em', textTransform: 'uppercase',
+          }}>PRO Feature</span>
+        </div>
+
+        {/* Emoji + heading */}
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+          <div style={{ fontSize: '48px', lineHeight: 1, marginBottom: '16px' }}>💑</div>
+          <h2 style={{
+            fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900,
+            letterSpacing: '-0.04em', margin: '0 0 10px', color: '#F0F0F0',
+          }}>
+            Couple Mode
+          </h2>
+          <p style={{ color: '#555', fontSize: '14px', margin: 0, lineHeight: 1.6, maxWidth: 380, marginInline: 'auto' }}>
+            Finance is the #1 reason couples fight. We make it the #1 reason you laugh — then fix it.
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,162,39,0.2), transparent)', margin: '28px 0' }} />
+
+        {/* Features */}
+        <ul style={{ listStyle: 'none', margin: '0 0 32px', padding: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {FEATURES.map(({ emoji, text }) => (
+            <li key={text} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+              <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.4 }}>{emoji}</span>
+              <span style={{ color: '#AAA', fontSize: '14px', lineHeight: 1.5 }}>{text}</span>
+            </li>
+          ))}
+        </ul>
+
+        {/* COMING SOON label */}
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <span style={{
+            background: 'rgba(201,162,39,0.08)', border: '1px solid rgba(201,162,39,0.2)',
+            borderRadius: '8px', padding: '6px 18px',
+            color: '#C9A227', fontSize: '11px', fontWeight: 700,
+            letterSpacing: '0.18em', textTransform: 'uppercase',
+          }}>Coming Soon</span>
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={() => navigate('/pricing')}
+          style={{
+            display: 'block', width: '100%',
+            background: '#F5C518', border: 'none', borderRadius: '14px',
+            padding: '15px', color: '#0A0A0A',
+            fontSize: '15px', fontWeight: 900, letterSpacing: '-0.01em',
+            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            boxShadow: '0 0 32px rgba(245,197,24,0.2)',
+            transition: 'opacity 0.15s, transform 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
+        >
+          See PRO Plan →
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── main component ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -605,8 +702,9 @@ export default function Dashboard() {
   ]
 
   const TABS = [
-    { id: 'overview',   label: 'OVERVIEW' },
-    { id: 'challenges', label: 'CHALLENGES' },
+    { id: 'overview',    label: 'OVERVIEW' },
+    { id: 'challenges',  label: 'CHALLENGES' },
+    { id: 'couple',      label: 'COUPLE MODE' },
   ]
 
   return (
@@ -704,6 +802,9 @@ export default function Dashboard() {
         )}
         {tab === 'challenges' && (
           <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
+        )}
+        {tab === 'couple' && (
+          <CoupleModeTab navigate={navigate} />
         )}
       </div>
     </div>
