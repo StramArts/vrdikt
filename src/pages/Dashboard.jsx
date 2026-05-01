@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useMobile } from '../hooks/useMobile'
 import { parseRoast } from '../lib/anthropic'
 import { checkZomatoDetox, generateMonthlyChallenge, calculateXP } from '../lib/challenges'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -35,11 +36,11 @@ function calcStreak(roasts) {
 
 const SPEND_CATEGORIES = [
   { name: 'Food Delivery', color: '#FF3B30', keywords: ['zomato', 'swiggy', 'dunzo', 'eatfit', 'box8'] },
-  { name: 'Groceries',     color: '#F5C518', keywords: ['blinkit', 'zepto', 'bigbasket', 'instamart', 'grofers'] },
-  { name: 'Shopping',      color: '#FF9F0A', keywords: ['amazon', 'flipkart', 'meesho', 'myntra', 'ajio', 'nykaa'] },
-  { name: 'Entertainment', color: '#BF5AF2', keywords: ['netflix', 'prime', 'hotstar', 'spotify', 'youtube', 'jiosaavn'] },
-  { name: 'Transport',     color: '#30D158', keywords: ['uber', 'ola', 'rapido', 'petrol', 'irctc'] },
-  { name: 'Finance / EMI', color: '#30B0C7', keywords: ['emi', 'sip', 'lic ', ' loan', 'insurance'] },
+  { name: 'Groceries',     color: '#FF9500', keywords: ['blinkit', 'zepto', 'bigbasket', 'instamart', 'grofers'] },
+  { name: 'Shopping',      color: '#F5C518', keywords: ['amazon', 'flipkart', 'meesho', 'myntra', 'ajio', 'nykaa'] },
+  { name: 'Entertainment', color: '#AF52DE', keywords: ['netflix', 'prime', 'hotstar', 'spotify', 'youtube', 'jiosaavn'] },
+  { name: 'Transport',     color: '#4CAF50', keywords: ['uber', 'ola', 'rapido', 'petrol', 'irctc'] },
+  { name: 'Finance / EMI', color: '#636366', keywords: ['emi', 'sip', 'lic ', ' loan', 'insurance'] },
 ]
 
 function parseSpendingCategories(raw) {
@@ -62,7 +63,7 @@ function parseSpendingCategories(raw) {
   }
   if (!Object.keys(totals).length) return null
   return Object.entries(totals)
-    .map(([name, amount]) => ({ name, amount, color: SPEND_CATEGORIES.find(c => c.name === name)?.color ?? '#555' }))
+    .map(([name, amount]) => ({ name, amount, color: SPEND_CATEGORIES.find(c => c.name === name)?.color ?? '#636366' }))
     .sort((a, b) => b.amount - a.amount)
 }
 
@@ -85,7 +86,7 @@ function StatCard({ label, value, accent, sub }) {
 function SpendingBreakdown({ latestRoast }) {
   const raw = latestRoast?.spending_data?.raw ?? null
   const categories = raw ? parseSpendingCategories(raw) : null
-  const max = categories ? Math.max(...categories.map(c => c.amount)) : 0
+  const total = categories ? categories.reduce((sum, c) => sum + c.amount, 0) : 0
 
   return (
     <div style={{
@@ -101,22 +102,62 @@ function SpendingBreakdown({ latestRoast }) {
           <p style={{ color: '#1E1E1E', fontSize: '12px', margin: 0 }}>Submit spending data with ₹ amounts to see category breakdown.</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {categories.map(({ name, amount, color }) => (
-            <div key={name}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                <span style={{ color: '#888', fontSize: '12px', fontWeight: 600 }}>{name}</span>
-                <span style={{ color, fontSize: '12px', fontWeight: 700 }}>₹{amount.toLocaleString('en-IN')}</span>
+        <>
+          <div style={{ position: 'relative' }}>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={categories}
+                  dataKey="amount"
+                  nameKey="name"
+                  innerRadius={68}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  startAngle={90}
+                  endAngle={-270}
+                  strokeWidth={0}
+                >
+                  {categories.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} stroke="transparent" />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value, name) => [`₹${value.toLocaleString('en-IN')}`, name]}
+                  contentStyle={{
+                    background: '#111', border: '1px solid #222',
+                    borderRadius: '8px', fontSize: '12px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                  itemStyle={{ color: '#F0F0F0' }}
+                  labelStyle={{ display: 'none' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{
+              position: 'absolute', top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center', pointerEvents: 'none',
+            }}>
+              <div style={{ color: '#444', fontSize: '10px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '4px' }}>
+                Total
               </div>
-              <div style={{ background: '#1A1A1A', borderRadius: '4px', height: '5px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%', width: `${(amount / max) * 100}%`, background: color,
-                  borderRadius: '4px', transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
-                }} />
+              <div style={{ color: '#F0F0F0', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1 }}>
+                ₹{total.toLocaleString('en-IN')}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
+            {categories.map(({ name, amount, color }) => (
+              <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, flexShrink: 0 }} />
+                  <span style={{ color: '#888', fontSize: '12px', fontWeight: 500 }}>{name}</span>
+                </div>
+                <span style={{ color, fontSize: '12px', fontWeight: 700 }}>₹{amount.toLocaleString('en-IN')}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

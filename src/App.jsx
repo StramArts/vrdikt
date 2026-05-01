@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import FeedbackButton from './components/FeedbackButton'
 import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Onboarding from './pages/Onboarding'
@@ -14,6 +15,7 @@ import Pricing from './pages/Pricing'
 export default function App() {
   return (
     <AuthProvider>
+      <FeedbackButton />
       <Routes>
         <Route path="/"            element={<Landing />} />
         <Route path="/pricing"     element={<Pricing />} />
