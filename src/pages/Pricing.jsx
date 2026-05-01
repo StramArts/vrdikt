@@ -99,17 +99,29 @@ export default function Pricing() {
         >
           <Logo />
         </button>
-        <button
-          onClick={() => navigate('/dashboard')}
-          style={{
-            background: '#F5C518', border: 'none', borderRadius: '8px',
-            padding: '7px 16px', color: '#0A0A0A',
-            fontSize: '13px', fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          Dashboard
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => navigate('/trips')}
+            style={{
+              background: 'transparent', border: 'none', padding: 0,
+              color: '#444', fontSize: '13px', fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Trips
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              background: '#F5C518', border: 'none', borderRadius: '8px',
+              padding: '7px 16px', color: '#0A0A0A',
+              fontSize: '13px', fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Dashboard
+          </button>
+        </div>
       </nav>
 
       {/* Hero */}

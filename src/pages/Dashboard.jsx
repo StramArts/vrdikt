@@ -670,6 +670,10 @@ export default function Dashboard() {
           <Logo />
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <button onClick={() => navigate('/trips')} style={{
+            background: 'transparent', border: 'none', padding: 0,
+            color: '#444', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          }}>Trips</button>
           <button onClick={() => navigate('/pricing')} style={{
             background: 'transparent', border: 'none', padding: 0,
             color: '#444', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',

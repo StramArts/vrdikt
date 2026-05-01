@@ -11,6 +11,8 @@ import Roast from './pages/Roast'
 import Challenge from './pages/Challenge'
 import Profile from './pages/Profile'
 import Pricing from './pages/Pricing'
+import Trips from './pages/Trips'
+import TripDetail from './pages/TripDetail'
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="/roast"       element={<ProtectedRoute><Roast /></ProtectedRoute>} />
         <Route path="/challenge"   element={<ProtectedRoute><Challenge /></ProtectedRoute>} />
         <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/trips"       element={<ProtectedRoute><Trips /></ProtectedRoute>} />
+        <Route path="/trips/:id"   element={<ProtectedRoute><TripDetail /></ProtectedRoute>} />
       </Routes>
     </AuthProvider>
   )
