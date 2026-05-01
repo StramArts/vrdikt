@@ -183,3 +183,18 @@ export function getStatusColor(status) {
 export function formatINR(amount) {
   return '₹' + Number(amount).toLocaleString('en-IN')
 }
+
+export function getCouplePersonality(score1, score2) {
+  const avg = (score1 + score2) / 2
+  const diff = Math.abs(score1 - score2)
+
+  if (avg < 30) return 'The Chaos Collective'
+  if (avg < 40 && diff > 15) return 'The Functional Disaster'
+  if (avg < 40 && diff <= 15) return 'The Delusional Savers'
+  if (avg >= 40 && avg < 55 && diff > 15) return 'The Balanced Mess'
+  if (avg >= 40 && avg < 55 && diff <= 15) return 'The Comfortable Spenders'
+  if (avg >= 55 && avg < 70) return 'The Almost Responsible Couple'
+  if (avg >= 70 && diff > 20) return 'The Unlikely Pair'
+  if (avg >= 70 && diff <= 20) return 'The Reformed Couple'
+  return 'The Financial Enigmas'
+}

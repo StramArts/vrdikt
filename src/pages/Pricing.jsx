@@ -29,6 +29,28 @@ const TIERS = [
     ],
   },
   {
+    id: 'couple',
+    name: 'COUPLE',
+    price: '$2.99',
+    period: '/month per person',
+    subtext: 'Both partners activate for $2.99 each. Less than a chai date.',
+    popular: false,
+    cta: 'Coming Soon',
+    ctaLink: null,
+    note: 'Already on Pro? Couple Mode is included. Just link your partner.',
+    features: [
+      'Link with your partner via invite code',
+      'Combined spending dashboard',
+      'Full transparency — see everything',
+      'Couple Spending Personality',
+      'Shared Savings Goal + Savings Pot',
+      'Monthly Couple Roast (on demand + auto on 1st)',
+      'Shareable Couple Roast Card',
+      'Couple Challenges',
+      'One Pro unlocks Couple for both',
+    ],
+  },
+  {
     id: 'pro',
     name: 'PRO',
     price: '$4.99',
@@ -113,9 +135,9 @@ export default function Pricing() {
       {/* Tiers */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
         gap: '14px',
-        maxWidth: 700, width: '100%',
+        maxWidth: 1020, width: '100%',
         margin: '0 auto',
         padding: isMobile ? '0 16px 64px' : '0 24px 80px',
         alignItems: 'start',
@@ -149,18 +171,23 @@ export default function Pricing() {
             {/* Header */}
             <div>
               <p style={{
-                color: tier.popular ? '#F5C518' : '#888',
+                color: tier.popular ? '#F5C518' : tier.id === 'couple' ? '#C9A227' : '#888',
                 fontSize: '11px', letterSpacing: '0.18em',
                 textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px',
               }}>
                 {tier.name}
               </p>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '38px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>
                   {tier.price}
                 </span>
-                <span style={{ color: '#444', fontSize: '14px' }}>{tier.period}</span>
+                <span style={{ color: '#444', fontSize: '13px' }}>{tier.period}</span>
               </div>
+              {tier.subtext && (
+                <p style={{ color: '#333', fontSize: '11px', margin: '8px 0 0', lineHeight: 1.4 }}>
+                  {tier.subtext}
+                </p>
+              )}
             </div>
 
             {/* Features */}
@@ -174,25 +201,32 @@ export default function Pricing() {
             </ul>
 
             {/* CTA */}
-            <button
-              onClick={() => tier.ctaLink && navigate(tier.ctaLink)}
-              disabled={!tier.ctaLink}
-              style={{
-                width: '100%',
-                background: tier.ctaLink ? '#F5C518' : 'transparent',
-                border: tier.ctaLink ? 'none' : '1px solid #1E1E1E',
-                borderRadius: '12px', padding: '13px',
-                color: tier.ctaLink ? '#0A0A0A' : '#333',
-                fontSize: '14px', fontWeight: 800,
-                cursor: tier.ctaLink ? 'pointer' : 'not-allowed',
-                fontFamily: 'Inter, sans-serif',
-                transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={e => { if (tier.ctaLink) e.currentTarget.style.opacity = '0.85' }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-            >
-              {tier.cta}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={() => tier.ctaLink && navigate(tier.ctaLink)}
+                disabled={!tier.ctaLink}
+                style={{
+                  width: '100%',
+                  background: tier.ctaLink ? '#F5C518' : 'transparent',
+                  border: tier.ctaLink ? 'none' : '1px solid #1E1E1E',
+                  borderRadius: '12px', padding: '13px',
+                  color: tier.ctaLink ? '#0A0A0A' : '#333',
+                  fontSize: '14px', fontWeight: 800,
+                  cursor: tier.ctaLink ? 'pointer' : 'not-allowed',
+                  fontFamily: 'Inter, sans-serif',
+                  transition: 'opacity 0.15s',
+                }}
+                onMouseEnter={e => { if (tier.ctaLink) e.currentTarget.style.opacity = '0.85' }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+              >
+                {tier.cta}
+              </button>
+              {tier.note && (
+                <p style={{ color: '#2A2A2A', fontSize: '11px', textAlign: 'center', margin: 0, lineHeight: 1.4 }}>
+                  {tier.note}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>
