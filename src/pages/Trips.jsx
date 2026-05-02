@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useMobile } from '../hooks/useMobile'
 import { CURRENCIES, formatAmount } from '../lib/currency'
+import AppNav from '../components/AppNav'
 
 function Logo() {
   return (
@@ -213,32 +214,7 @@ export default function Trips() {
     }}>
 
       {/* Nav */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 24px', borderBottom: '1px solid #111',
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',
-      }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-        >
-          <Logo />
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              background: '#F5C518', border: 'none', borderRadius: '8px',
-              padding: '7px 16px', color: '#0A0A0A',
-              fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            Dashboard
-          </button>
-        </div>
-      </nav>
+      <AppNav loggedIn showDashboardBtn />
 
       {/* Content */}
       <div style={{

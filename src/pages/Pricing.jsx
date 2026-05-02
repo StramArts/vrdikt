@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useMobile } from '../hooks/useMobile'
+import { useAuth } from '../contexts/AuthContext'
+import AppNav from '../components/AppNav'
 
 function Logo() {
   return (
@@ -78,6 +80,7 @@ const TIERS = [
 export default function Pricing() {
   const navigate = useNavigate()
   const isMobile = useMobile()
+  const { user } = useAuth()
 
   return (
     <div style={{
@@ -87,42 +90,7 @@ export default function Pricing() {
     }}>
 
       {/* Nav */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 24px', borderBottom: '1px solid #111',
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',
-      }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-        >
-          <Logo />
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            onClick={() => navigate('/trips')}
-            style={{
-              background: 'transparent', border: 'none', padding: 0,
-              color: '#444', fontSize: '13px', fontWeight: 500,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            Trips
-          </button>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              background: '#F5C518', border: 'none', borderRadius: '8px',
-              padding: '7px 16px', color: '#0A0A0A',
-              fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            Dashboard
-          </button>
-        </div>
-      </nav>
+      <AppNav loggedIn={!!user} showDashboardBtn user={user} />
 
       {/* Hero */}
       <div style={{ textAlign: 'center', padding: isMobile ? '48px 20px 36px' : '64px 20px 48px' }}>

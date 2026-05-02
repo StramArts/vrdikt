@@ -6,6 +6,7 @@ import { useMobile } from '../hooks/useMobile'
 import { formatAmount } from '../lib/currency'
 import { calculateSettlements, getMemberTotals } from '../lib/tripCalculations'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import AppNav from '../components/AppNav'
 
 // ─── constants ─────────────────────────────────────────────────────────────────
 
@@ -794,42 +795,7 @@ export default function TripDetail() {
     }}>
 
       {/* Nav */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 24px', borderBottom: '1px solid #111',
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',
-      }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-        >
-          <Logo />
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            onClick={() => navigate('/trips')}
-            style={{
-              background: 'transparent', border: 'none', padding: 0,
-              color: '#444', fontSize: '13px', fontWeight: 500, cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            All Trips
-          </button>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              background: '#F5C518', border: 'none', borderRadius: '8px',
-              padding: '7px 16px', color: '#0A0A0A',
-              fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            Dashboard
-          </button>
-        </div>
-      </nav>
+      <AppNav loggedIn showDashboardBtn />
 
       {/* Content */}
       <div style={{

@@ -7,6 +7,7 @@ import { parseRoast } from '../lib/anthropic'
 import { checkZomatoDetox, generateMonthlyChallenge, calculateXP } from '../lib/challenges'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import CoupleMode from './CoupleMode'
+import AppNav from '../components/AppNav'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -660,37 +661,7 @@ export default function Dashboard() {
     }}>
 
       {/* Nav */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 24px', borderBottom: '1px solid #111',
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',
-      }}>
-        <button onClick={() => navigate('/')} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
-          <Logo />
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => navigate('/trips')} style={{
-            background: 'transparent', border: 'none', padding: 0,
-            color: '#444', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-          }}>Trips</button>
-          <button onClick={() => navigate('/pricing')} style={{
-            background: 'transparent', border: 'none', padding: 0,
-            color: '#444', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-          }}>Pricing</button>
-          {!isMobile && <span style={{ color: '#252525', fontSize: '13px' }}>{user?.email}</span>}
-          <button
-            onClick={handleSignOut}
-            style={{
-              background: 'transparent', border: '1px solid #1E1E1E', borderRadius: '8px', padding: '6px 14px',
-              color: '#555', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-              transition: 'border-color 0.2s, color 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF3B30'; e.currentTarget.style.color = '#FF3B30' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#1E1E1E'; e.currentTarget.style.color = '#555' }}
-          >Sign out</button>
-        </div>
-      </nav>
+      <AppNav loggedIn showDashboardBtn={false} user={user} onSignOut={handleSignOut} />
 
       {/* Content */}
       <div style={{
