@@ -3,28 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { calculateXP } from '../lib/challenges'
+import html2canvas from 'html2canvas'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-function wrapText(ctx, text, maxWidth) {
-  const words = text.split(' ')
-  const lines = []
-  let current = ''
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word
-    if (ctx.measureText(test).width > maxWidth && current) {
-      lines.push(current)
-      current = word
-    } else {
-      current = test
-    }
-  }
-  if (current) lines.push(current)
-  return lines
 }
 
 // ─── sub-components ───────────────────────────────────────────────────────────
@@ -60,148 +44,141 @@ function ScoreRing({ displayScore, finalScore }) {
   )
 }
 
-// ─── share card generator ─────────────────────────────────────────────────────
+// ─── hidden share card (captured by html2canvas) ──────────────────────────────
 
-function buildShareCanvas({ roastLines, personalityType, score, savageInsight }) {
-  const W = 1080, H = 1440
-  const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
+function ShareCard({ caseNo, score, personalityType, firstRoastLine, cardRef }) {
+  const scoreColor = score < 40 ? '#FF3B30' : score > 70 ? '#30D158' : '#F5C518'
+  const pct = score
 
-  // Background
-  ctx.fillStyle = '#0A0A0A'
-  ctx.fillRect(0, 0, W, H)
+  return (
+    <div
+      ref={cardRef}
+      style={{
+        position: 'fixed',
+        top: '-9999px',
+        left: '-9999px',
+        width: 390,
+        background: '#0A0A0A',
+        fontFamily: 'Inter, Arial, sans-serif',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Gold top stripe */}
+      <div style={{ height: 5, background: '#F5C518', width: '100%' }} />
 
-  // Gold top stripe
-  ctx.fillStyle = '#F5C518'
-  ctx.fillRect(0, 0, W, 6)
+      <div style={{ padding: '28px 28px 0' }}>
+        {/* Logo row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <span style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>
+            <span style={{ color: '#F0F0F0' }}>VRD</span>
+            <span style={{ color: '#F5C518' }}>IKT</span>
+          </span>
+          <span style={{ color: '#2A2A2A', fontSize: 12, fontWeight: 400 }}>vrdikt.vercel.app</span>
+        </div>
 
-  // Logo
-  ctx.textAlign = 'left'
-  ctx.font = '900 62px Arial'
-  ctx.fillStyle = '#F0F0F0'
-  ctx.fillText('VRD', 80, 122)
-  ctx.fillStyle = '#F5C518'
-  ctx.fillText('IKT', 80 + ctx.measureText('VRD').width, 122)
+        {/* Case No. */}
+        <p style={{
+          color: '#333', fontSize: 11, letterSpacing: '0.22em',
+          textTransform: 'uppercase', fontWeight: 600, margin: '0 0 10px',
+        }}>
+          CASE NO. {caseNo}
+        </p>
 
-  ctx.textAlign = 'right'
-  ctx.font = '400 24px Arial'
-  ctx.fillStyle = '#2A2A2A'
-  ctx.fillText('vrdikt.app', W - 80, 122)
+        {/* THE VERDICT IS IN */}
+        <h1 style={{
+          color: '#F5C518',
+          fontSize: 36,
+          fontWeight: 900,
+          letterSpacing: '-0.04em',
+          margin: '0 0 24px',
+          lineHeight: 1.05,
+        }}>
+          THE VERDICT<br />IS IN
+        </h1>
 
-  // "THE VERDICT IS IN"
-  ctx.textAlign = 'center'
-  ctx.font = '900 72px Arial'
-  ctx.fillStyle = '#F5C518'
-  ctx.fillText('THE VERDICT IS IN', W / 2, 270)
+        {/* Divider */}
+        <div style={{ height: 1, background: '#1A1A1A', marginBottom: 24 }} />
 
-  // Divider
-  ctx.fillStyle = '#1A1A1A'
-  ctx.fillRect(80, 300, W - 160, 2)
+        {/* Spending personality */}
+        {personalityType && (
+          <div style={{ marginBottom: 24 }}>
+            <p style={{
+              color: '#444', fontSize: 10, letterSpacing: '0.22em',
+              textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px',
+            }}>
+              SPENDING PERSONALITY
+            </p>
+            <p style={{
+              color: '#F5C518', fontSize: 22, fontWeight: 900,
+              letterSpacing: '-0.03em', margin: 0, lineHeight: 1.2,
+            }}>
+              {personalityType}
+            </p>
+          </div>
+        )}
 
-  // Roast lines
-  ctx.fillStyle = '#FF3B30'
-  ctx.font = '500 36px Arial'
-  let y = 390
-  for (const line of roastLines) {
-    for (const wl of wrapText(ctx, line, W - 200)) {
-      ctx.fillText(wl, W / 2, y)
-      y += 52
-    }
-    y += 18
-  }
+        {/* Score ring (CSS conic gradient) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
+            background: `conic-gradient(${scoreColor} ${pct}%, #1C1C1C ${pct}%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%', background: '#0A0A0A',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ color: scoreColor, fontSize: 22, fontWeight: 900, lineHeight: 1 }}>{score}</span>
+              <span style={{ color: '#444', fontSize: 9, fontWeight: 600 }}>/100</span>
+            </div>
+          </div>
+          <div>
+            <p style={{ color: '#333', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>
+              VRDIKT SCORE
+            </p>
+            <p style={{ color: scoreColor, fontSize: 14, fontWeight: 700, margin: 0 }}>
+              {score < 30 ? 'Financially Ruined' :
+               score < 50 ? 'Could Be Worse (Barely)' :
+               score < 70 ? 'Room For Improvement' :
+               'Actually Decent'}
+            </p>
+          </div>
+        </div>
 
-  y += 28
+        {/* First roast line */}
+        {firstRoastLine && (
+          <div style={{
+            background: 'rgba(255,59,48,0.06)',
+            border: '1px solid rgba(255,59,48,0.15)',
+            borderRadius: 14,
+            padding: '16px 18px',
+            marginBottom: 28,
+          }}>
+            <p style={{
+              color: '#FF3B30', fontSize: 15, fontWeight: 600,
+              lineHeight: 1.55, margin: 0,
+            }}>
+              "{firstRoastLine}"
+            </p>
+          </div>
+        )}
+      </div>
 
-  // Personality label
-  ctx.fillStyle = '#333'
-  ctx.font = '700 22px Arial'
-  ctx.fillText('SPENDING PERSONALITY', W / 2, y)
-  y += 68
+      {/* Watermark footer */}
+      <div style={{
+        padding: '0 28px 0',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        paddingBottom: 5,
+      }}>
+        <p style={{ color: '#1E1E1E', fontSize: 11, fontWeight: 500, margin: 0, letterSpacing: '0.05em' }}>
+          vrdikt.vercel.app
+        </p>
+      </div>
 
-  ctx.fillStyle = '#F5C518'
-  ctx.font = '800 56px Arial'
-  ctx.fillText(personalityType ?? '—', W / 2, y)
-  y += 100
-
-  // Score ring
-  const cx = W / 2, cy = y + 96
-  const r = 88
-  const sc = score < 40 ? '#FF3B30' : score > 70 ? '#30D158' : '#F5C518'
-
-  ctx.strokeStyle = '#1C1C1C'
-  ctx.lineWidth = 16
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke()
-
-  ctx.strokeStyle = sc; ctx.lineCap = 'round'
-  ctx.beginPath()
-  ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * score / 100)
-  ctx.stroke()
-
-  ctx.fillStyle = sc
-  ctx.font = '900 90px Arial'
-  ctx.fillText(score, cx, cy + 28)
-  ctx.fillStyle = '#333'
-  ctx.font = '500 26px Arial'
-  ctx.fillText('VRDIKT SCORE', cx, cy + 68)
-
-  y = cy + 140
-
-  if (savageInsight) {
-    ctx.fillStyle = '#1A1A1A'
-    ctx.fillRect(80, y, W - 160, 2)
-    y += 44
-
-    ctx.fillStyle = '#444'
-    ctx.font = '700 22px Arial'
-    ctx.fillText('SAVAGE INSIGHT', W / 2, y)
-    y += 54
-
-    ctx.fillStyle = '#666'
-    ctx.font = '400 30px Arial'
-    for (const il of wrapText(ctx, savageInsight, W - 200)) {
-      ctx.fillText(il, W / 2, y)
-      y += 46
-    }
-  }
-
-  // Gold bottom stripe
-  ctx.fillStyle = '#F5C518'
-  ctx.fillRect(0, H - 6, W, 6)
-
-  return canvas
-}
-
-async function shareVerdict(data) {
-  const canvas = buildShareCanvas(data)
-
-  if (typeof navigator.canShare === 'function') {
-    return new Promise(resolve => {
-      canvas.toBlob(async blob => {
-        const file = new File([blob], 'vrdikt-verdict.png', { type: 'image/png' })
-        if (navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], title: 'My VRDIKT Verdict' })
-            resolve('shared')
-            return
-          } catch { /* fall through */ }
-        }
-        downloadCanvas(canvas)
-        resolve('downloaded')
-      })
-    })
-  }
-
-  downloadCanvas(canvas)
-  return 'downloaded'
-}
-
-function downloadCanvas(canvas) {
-  const a = document.createElement('a')
-  a.download = 'vrdikt-verdict.png'
-  a.href = canvas.toDataURL('image/png')
-  a.click()
+      {/* Gold bottom stripe */}
+      <div style={{ height: 5, background: '#F5C518', width: '100%' }} />
+    </div>
+  )
 }
 
 // ─── main component ───────────────────────────────────────────────────────────
@@ -212,6 +189,9 @@ export default function Roast() {
   const { user }  = useAuth()
   const { roastLines = [], personalityType = null, score = 35, savageInsight = null } =
     location.state || {}
+
+  const caseNoRef = useRef(String(Date.now()).slice(-6))
+  const cardRef   = useRef(null)
 
   // ── animation state ─────────────────────────────────────────────────────────
   const [showLogo,        setShowLogo]        = useState(false)
@@ -259,7 +239,7 @@ export default function Roast() {
           setLineTexts(prev => { const n = [...prev]; n[i] = text.slice(0, c); return n })
           await sleep(18)
         }
-        await sleep(480) // pause between lines
+        await sleep(480)
       }
       setAllLinesTyped(true)
       setActiveLineIdx(-1)
@@ -288,7 +268,7 @@ export default function Roast() {
 
     function tick(now) {
       const t = Math.min((now - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - t, 3) // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3)
       setDisplayScore(Math.round(score * eased))
       if (t < 1) rafId = requestAnimationFrame(tick)
     }
@@ -317,9 +297,44 @@ export default function Roast() {
 
   // ── share handler ────────────────────────────────────────────────────────────
   async function handleShare() {
+    if (!cardRef.current) return
     setSharing(true)
-    await shareVerdict({ roastLines, personalityType, score, savageInsight })
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: '#0A0A0A',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      })
+
+      if (typeof navigator.canShare === 'function') {
+        await new Promise(resolve => {
+          canvas.toBlob(async blob => {
+            const file = new File([blob], 'vrdikt-verdict.png', { type: 'image/png' })
+            if (navigator.canShare({ files: [file] })) {
+              try {
+                await navigator.share({ files: [file], title: 'My VRDIKT Verdict' })
+                resolve(); return
+              } catch { /* fall through to download */ }
+            }
+            downloadCanvas(canvas)
+            resolve()
+          })
+        })
+      } else {
+        downloadCanvas(canvas)
+      }
+    } catch {
+      // fallback: nothing to do
+    }
     setSharing(false)
+  }
+
+  function downloadCanvas(canvas) {
+    const a = document.createElement('a')
+    a.download = 'vrdikt-verdict.png'
+    a.href = canvas.toDataURL('image/png')
+    a.click()
   }
 
   const scoreColor = score < 40 ? '#FF3B30' : score > 70 ? '#30D158' : '#F5C518'
@@ -344,6 +359,15 @@ export default function Roast() {
       overflowX: 'hidden',
     }}>
 
+      {/* Hidden share card — captured by html2canvas */}
+      <ShareCard
+        caseNo={caseNoRef.current}
+        score={score}
+        personalityType={personalityType}
+        firstRoastLine={roastLines[0] ?? null}
+        cardRef={cardRef}
+      />
+
       {/* ── Logo ── */}
       <div style={{
         marginBottom: '44px',
@@ -362,7 +386,7 @@ export default function Roast() {
           color: '#333', fontSize: '11px', letterSpacing: '0.24em',
           textTransform: 'uppercase', fontWeight: 600, margin: '0 0 14px',
         }}>
-          CASE NO. {String(Date.now()).slice(-6)}
+          CASE NO. {caseNoRef.current}
         </p>
         <h1 style={{
           fontSize: 'clamp(30px, 7vw, 56px)',

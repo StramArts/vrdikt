@@ -151,7 +151,6 @@ export default function Trips() {
     await supabase.from('trip_members').insert({
       trip_id: trip.id,
       user_id: user.id,
-      email: user.email,
       role: 'admin',
     })
 
@@ -185,7 +184,6 @@ export default function Trips() {
     const { error: joinErr } = await supabase.from('trip_members').insert({
       trip_id: trip.id,
       user_id: user.id,
-      email: user.email,
       role: 'member',
     })
 
