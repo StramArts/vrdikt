@@ -89,7 +89,10 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
   return (
     <nav style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: isMobile ? '14px 16px' : '18px 24px',
+      paddingTop: 'max(12px, env(safe-area-inset-top))',
+      paddingBottom: isMobile ? '14px' : '18px',
+      paddingLeft: isMobile ? '16px' : '24px',
+      paddingRight: isMobile ? '16px' : '24px',
       borderBottom: '1px solid #111',
       position: 'sticky', top: 0, zIndex: 50,
       background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',

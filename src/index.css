@@ -77,6 +77,13 @@
   50%       { text-shadow: 0 0 48px rgba(245,197,24,0.9), 0 0 80px rgba(245,197,24,0.3); }
 }
 
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -94,6 +101,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* push content above iPhone home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #root {
