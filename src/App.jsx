@@ -13,6 +13,8 @@ import Profile from './pages/Profile'
 import Pricing from './pages/Pricing'
 import Trips from './pages/Trips'
 import TripDetail from './pages/TripDetail'
+import GmailConnect from './pages/GmailConnect'
+import GmailCallback from './pages/GmailCallback'
 
 export default function App() {
   return (
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/trips"       element={<ProtectedRoute><Trips /></ProtectedRoute>} />
         <Route path="/trips/:id"   element={<ProtectedRoute><TripDetail /></ProtectedRoute>} />
+        <Route path="/connect-gmail"        element={<ProtectedRoute><GmailConnect /></ProtectedRoute>} />
+        <Route path="/auth/gmail/callback"  element={<ProtectedRoute><GmailCallback /></ProtectedRoute>} />
       </Routes>
     </AuthProvider>
   )

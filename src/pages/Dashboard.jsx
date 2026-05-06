@@ -221,9 +221,88 @@ function CompactLockedCard({ emoji, name }) {
   )
 }
 
+// ─── gmail card ───────────────────────────────────────────────────────────────
+
+function GmailCard({ gmailStatus, onSync, syncing, navigate }) {
+  if (!gmailStatus) return null
+
+  if (!gmailStatus.connected) {
+    return (
+      <div style={{
+        background: '#0D0D0D', border: '1px solid #161616',
+        borderRadius: '20px', padding: '22px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '12px',
+            background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0,
+          }}>📧</div>
+          <div>
+            <p style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 800, margin: '0 0 3px' }}>Connect Gmail for Automatic Tracking</p>
+            <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>Pull bank transactions directly from your inbox</p>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/connect-gmail')}
+          style={{
+            background: '#F5C518', border: 'none', borderRadius: '10px',
+            padding: '10px 18px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
+            cursor: 'pointer', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0,
+          }}
+        >Connect Gmail →</button>
+      </div>
+    )
+  }
+
+  const lastSync = gmailStatus.lastSyncedAt
+    ? new Date(gmailStatus.lastSyncedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : 'Never'
+
+  return (
+    <div style={{
+      background: '#0D0D0D', border: '1px solid rgba(48,209,88,0.2)',
+      borderRadius: '20px', padding: '22px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '12px',
+          background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0,
+        }}>✅</div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+            <p style={{ color: '#30D158', fontSize: '14px', fontWeight: 800, margin: 0 }}>Gmail Connected</p>
+            {gmailStatus.email && (
+              <span style={{ color: '#333', fontSize: '11px' }}>{gmailStatus.email}</span>
+            )}
+          </div>
+          <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>
+            Last sync: {lastSync}
+            {gmailStatus.txCount != null && ` · ${gmailStatus.txCount} transactions`}
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={onSync}
+        disabled={syncing}
+        style={{
+          background: 'transparent', border: '1px solid rgba(48,209,88,0.3)', borderRadius: '10px',
+          padding: '9px 16px', color: '#30D158', fontSize: '13px', fontWeight: 700,
+          cursor: syncing ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif',
+          opacity: syncing ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0,
+          transition: 'opacity 0.15s',
+        }}
+      >{syncing ? 'Syncing…' : 'Sync Now'}</button>
+    </div>
+  )
+}
+
 // ─── tab views ────────────────────────────────────────────────────────────────
 
-function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
+function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmailStatus, onGmailSync, syncing }) {
   const latestRoast = roasts[0] ?? null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -236,6 +315,9 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile }) {
       }}>
         {stats.map(s => <StatCard key={s.label} {...s} />)}
       </div>
+
+      {/* Gmail Connection Card */}
+      <GmailCard gmailStatus={gmailStatus} onSync={onGmailSync} syncing={syncing} navigate={navigate} />
 
       {/* Spending Breakdown */}
       <SpendingBreakdown latestRoast={latestRoast} />
@@ -613,8 +695,10 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const isMobile = useMobile()
 
-  const [roasts, setRoasts] = useState(null)
-  const [tab, setTab] = useState('overview')
+  const [roasts, setRoasts]         = useState(null)
+  const [tab, setTab]               = useState('overview')
+  const [gmailStatus, setGmailStatus] = useState(null)
+  const [syncing, setSyncing]       = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -625,6 +709,45 @@ export default function Dashboard() {
       .order('created_at', { ascending: false })
       .then(({ data }) => setRoasts(data ?? []))
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('gmail_connections')
+      .select('email, last_synced_at')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(async ({ data }) => {
+        if (!data) { setGmailStatus({ connected: false }); return }
+        const { count } = await supabase
+          .from('auto_transactions')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+        setGmailStatus({ connected: true, email: data.email, lastSyncedAt: data.last_synced_at, txCount: count ?? 0 })
+      })
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleGmailSync() {
+    if (!user || syncing) return
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/gmail-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setGmailStatus(prev => ({
+          ...prev,
+          lastSyncedAt: new Date().toISOString(),
+          txCount: (prev?.txCount ?? 0) + (data.count ?? 0),
+        }))
+      }
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   async function handleSignOut() {
     await signOut()
@@ -718,7 +841,7 @@ export default function Dashboard() {
         </div>
 
         {tab === 'overview' && (
-          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} />
+          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} gmailStatus={gmailStatus} onGmailSync={handleGmailSync} syncing={syncing} />
         )}
         {tab === 'challenges' && (
           <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
