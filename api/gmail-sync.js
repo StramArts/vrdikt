@@ -17,20 +17,54 @@ function categorise(text) {
   return 'Other'
 }
 
+const AMOUNT_PATTERNS = [
+  /(?:Rs\.?|INR|₹)\s*(\d+(?:,\d+)*(?:\.\d{1,2})?)/gi,
+  /(\d+(?:,\d+)*(?:\.\d{1,2})?)\s*(?:Rs\.?|INR|₹)/gi,
+  /(?:Rs\.?|INR|₹)(\d+)/gi,
+]
+
+const MERCHANT_PATTERNS = [
+  /\bVPA\s+([a-zA-Z0-9.\-_@]+)/i,
+  /\bUPI[-/]([A-Za-z0-9\s\-&.]{2,40}?)(?:\s+on|\s+for|\s+via|\s+Ref|\s+UPI|\.|,|$)/i,
+  /\btowards\s+([A-Za-z0-9\s\-&./]{2,40}?)(?:\s+on|\s+for|\s+via|\s+Ref|\.|,|$)/i,
+  /\bat\s+([A-Za-z0-9\s\-&./]{2,40}?)(?:\s+on|\s+for|\s+via|\s+Ref|\.|,|$)/i,
+  /\bto\s+([A-Za-z][A-Za-z0-9\s\-&./]{2,40}?)(?:\s+on|\s+for|\s+via|\s+Ref|\.|,|$)/i,
+  /\bfor\s+([A-Za-z][A-Za-z0-9\s\-&./]{2,40}?)(?:\s+on|\s+via|\s+Ref|\.|,|$)/i,
+]
+
+function extractAmount(text) {
+  for (const re of AMOUNT_PATTERNS) {
+    re.lastIndex = 0
+    const m = re.exec(text)
+    if (m) {
+      const val = parseFloat(m[1].replace(/,/g, ''))
+      if (val >= 1) return val
+    }
+  }
+  return null
+}
+
+function extractMerchant(text, subject) {
+  for (const re of MERCHANT_PATTERNS) {
+    const m = text.match(re)
+    if (m?.[1]) {
+      const clean = m[1].trim().replace(/\s+/g, ' ')
+      if (clean.length >= 2) return clean.slice(0, 50)
+    }
+  }
+  return subject?.replace(/[^a-zA-Z0-9\s]/g, '').trim().slice(0, 40) ?? 'Unknown'
+}
+
 function parseEmail(snippet, subject, date) {
-  const amountMatch = snippet.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i)
-  if (!amountMatch) return null
+  const combinedText = `${subject ?? ''} ${snippet}`
 
-  const amount = parseFloat(amountMatch[1].replace(/,/g, ''))
-  if (!amount || amount < 1) return null
+  const amount = extractAmount(combinedText)
+  if (!amount) return null
 
-  const isCredit = /credited|credit|received|deposited/i.test(snippet)
+  const isCredit = /credited|credit|received|deposited|added to/i.test(combinedText)
   const type = isCredit ? 'credit' : 'debit'
 
-  const merchantMatch = snippet.match(/(?:at|to|from)\s+([A-Z][A-Za-z0-9\s\-&.]{2,30}?)(?:\s+on|\s+for|\s+via|\s+using|\.|,|$)/i)
-  const merchant = merchantMatch?.[1]?.trim() ?? subject?.replace(/[^a-zA-Z0-9\s]/g, '').trim().slice(0, 40) ?? 'Unknown'
-
-  const combinedText = `${subject ?? ''} ${snippet}`
+  const merchant = extractMerchant(snippet, subject)
   const category = categorise(combinedText)
 
   return { amount, type, merchant, category, date: date ? new Date(date).toISOString() : new Date().toISOString() }
@@ -97,9 +131,8 @@ export default async function handler(req, res) {
     }
   }
 
-  const query = encodeURIComponent(
-    'from:(alerts@hdfcbank.net OR icicibank.com OR sbi.co.in OR axisbank.com OR kotak.com OR yesbank.in OR indusind.com) newer_than:30d'
-  )
+  const searchQuery = '(subject:debited OR subject:credited OR subject:transaction OR subject:"payment made" OR subject:"amount debited" OR subject:"amount credited" OR subject:instaalert OR subject:"bank alert" OR subject:"a/c" OR subject:"your account") newer_than:30d'
+  const query = encodeURIComponent(searchQuery)
 
   const listRes = await fetch(
     `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=50`,
