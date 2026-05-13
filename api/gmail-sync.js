@@ -164,18 +164,22 @@ export default async function handler(req, res) {
     parsed.push({ ...tx, gmail_message_id: id, user_id: userId })
   }
 
-  // Upsert to avoid duplicates (gmail_message_id is unique per user)
   if (parsed.length > 0) {
     await supabase
       .from('auto_transactions')
-      .upsert(parsed, { onConflict: 'gmail_message_id' })
+      .upsert(parsed, { onConflict: 'gmail_message_id', ignoreDuplicates: true })
   }
 
-  // Update last_synced_at
-  await supabase
-    .from('gmail_connections')
-    .update({ last_synced_at: new Date().toISOString() })
-    .eq('user_id', userId)
+  const [, { count }] = await Promise.all([
+    supabase
+      .from('gmail_connections')
+      .update({ last_synced_at: new Date().toISOString() })
+      .eq('user_id', userId),
+    supabase
+      .from('auto_transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+  ])
 
-  return res.status(200).json({ success: true, count: parsed.length, transactions: parsed })
+  return res.status(200).json({ success: true, count: count ?? parsed.length, transactions: parsed })
 }
