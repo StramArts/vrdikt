@@ -2,22 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
-import { useMobile } from '../hooks/useMobile'
-import { parseRoast } from '../lib/anthropic'
 import { checkZomatoDetox, generateMonthlyChallenge, calculateXP } from '../lib/challenges'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import CoupleMode from './CoupleMode'
 import AppNav from '../components/AppNav'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-
-function Logo() {
-  return (
-    <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>
-      <span style={{ color: '#F0F0F0' }}>VRD</span><span style={{ color: '#F5C518' }}>IKT</span>
-    </span>
-  )
-}
 
 function scoreColor(s) {
   if (s == null) return '#555'
@@ -58,627 +48,298 @@ const CATEGORY_COLORS = {
   'Other':         '#444',
 }
 
-const SPEND_CATEGORIES = [
-  { name: 'Food Delivery', color: '#FF3B30', keywords: ['zomato', 'swiggy', 'dunzo', 'eatfit', 'box8'] },
-  { name: 'Groceries',     color: '#FF9500', keywords: ['blinkit', 'zepto', 'bigbasket', 'instamart', 'grofers'] },
-  { name: 'Shopping',      color: '#F5C518', keywords: ['amazon', 'flipkart', 'meesho', 'myntra', 'ajio', 'nykaa'] },
-  { name: 'Entertainment', color: '#AF52DE', keywords: ['netflix', 'prime', 'hotstar', 'spotify', 'youtube', 'jiosaavn'] },
-  { name: 'Transport',     color: '#4CAF50', keywords: ['uber', 'ola', 'rapido', 'petrol', 'irctc'] },
-  { name: 'Finance / EMI', color: '#636366', keywords: ['emi', 'sip', 'lic ', ' loan', 'insurance'] },
-]
+// ─── OVERVIEW TAB ─────────────────────────────────────────────────────────────
 
-function parseSpendingCategories(raw) {
-  if (!raw || typeof raw !== 'string') return null
-  const totals = {}
-  for (const line of raw.split('\n')) {
-    const m = line.match(/₹\s*([\d,]+)/)
-    if (!m) continue
-    const amount = parseInt(m[1].replace(/,/g, ''), 10)
-    if (!amount) continue
-    const lower = line.toLowerCase()
-    let matched = false
-    for (const cat of SPEND_CATEGORIES) {
-      if (cat.keywords.some(kw => lower.includes(kw))) {
-        totals[cat.name] = (totals[cat.name] ?? 0) + amount
-        matched = true; break
-      }
-    }
-    if (!matched) totals['Other'] = (totals['Other'] ?? 0) + amount
+function OverviewTab({ roasts, loading, gmailStatus, autoTxns, navigate }) {
+  const latestRoast = roasts[0] ?? null
+  const latestScore = latestRoast?.score ?? null
+  const streak      = calcStreak(roasts)
+  const scores      = roasts.map(r => r.score).filter(s => typeof s === 'number')
+  const bestScore   = scores.length ? Math.max(...scores) : null
+  const xpData      = calculateXP(roasts)
+
+  // Build donut from auto transactions (debits only)
+  const catTotals = {}
+  for (const tx of (autoTxns ?? [])) {
+    if (tx.type !== 'debit') continue
+    catTotals[tx.category] = (catTotals[tx.category] ?? 0) + tx.amount
   }
-  if (!Object.keys(totals).length) return null
-  return Object.entries(totals)
-    .map(([name, amount]) => ({ name, amount, color: SPEND_CATEGORIES.find(c => c.name === name)?.color ?? '#636366' }))
+  const catData = Object.entries(catTotals)
+    .map(([name, amount]) => ({ name, amount, color: CATEGORY_COLORS[name] ?? '#636366' }))
     .sort((a, b) => b.amount - a.amount)
-}
-
-// ─── sub-components ───────────────────────────────────────────────────────────
-
-function StatCard({ label, value, accent, sub }) {
-  return (
-    <div style={{
-      background: '#0D0D0D', border: '1px solid #161616',
-      borderRadius: '16px', padding: '16px 14px',
-      display: 'flex', flexDirection: 'column', gap: '4px',
-    }}>
-      <span style={{ color: '#333', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em' }}>{label}</span>
-      <span style={{ color: accent, fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{value}</span>
-      {sub && <span style={{ color: '#333', fontSize: '10px', fontWeight: 500 }}>{sub}</span>}
-    </div>
-  )
-}
-
-function SpendingBreakdown({ latestRoast }) {
-  const raw = latestRoast?.spending_data?.raw ?? null
-  const categories = raw ? parseSpendingCategories(raw) : null
-  const total = categories ? categories.reduce((sum, c) => sum + c.amount, 0) : 0
+  const top3  = catData.slice(0, 3)
+  const total = catData.reduce((s, c) => s + c.amount, 0)
+  const hasSpend = catData.length > 0
 
   return (
-    <div style={{
-      background: '#0D0D0D', border: '1px solid #161616',
-      borderRadius: '20px', padding: '22px',
-    }}>
-      <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 18px' }}>
-        Spending Breakdown
-      </p>
-      {!categories ? (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <p style={{ color: '#2A2A2A', fontSize: '13px', margin: '0 0 4px' }}>No breakdown available yet.</p>
-          <p style={{ color: '#1E1E1E', fontSize: '12px', margin: 0 }}>Submit spending data with ₹ amounts to see category breakdown.</p>
-        </div>
-      ) : (
-        <>
-          <div style={{ position: 'relative' }}>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={categories}
-                  dataKey="amount"
-                  nameKey="name"
-                  innerRadius={68}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  startAngle={90}
-                  endAngle={-270}
-                  strokeWidth={0}
-                >
-                  {categories.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} stroke="transparent" />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value, name) => [`₹${value.toLocaleString('en-IN')}`, name]}
-                  contentStyle={{
-                    background: '#111', border: '1px solid #222',
-                    borderRadius: '8px', fontSize: '12px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                  itemStyle={{ color: '#F0F0F0' }}
-                  labelStyle={{ display: 'none' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{
-              position: 'absolute', top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              textAlign: 'center', pointerEvents: 'none',
-            }}>
-              <div style={{ color: '#444', fontSize: '10px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                Total
-              </div>
-              <div style={{ color: '#F0F0F0', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1 }}>
-                ₹{total.toLocaleString('en-IN')}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
-            {categories.map(({ name, amount, color }) => (
-              <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, flexShrink: 0 }} />
-                  <span style={{ color: '#888', fontSize: '12px', fontWeight: 500 }}>{name}</span>
-                </div>
-                <span style={{ color, fontSize: '12px', fontWeight: 700 }}>₹{amount.toLocaleString('en-IN')}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-function CompactActiveCard({ emoji, name, progress, total, status, message }) {
-  const c = { active: '#F5C518', failed: '#FF3B30', completed: '#30D158' }[status] ?? '#F5C518'
-  const pct = total > 0 ? Math.min((progress / total) * 100, 100) : 0
-  return (
-    <div style={{
-      background: '#111', border: '1px solid rgba(245,197,24,0.15)',
-      borderRadius: '18px', padding: '18px',
-      display: 'flex', flexDirection: 'column', gap: '10px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <span style={{ fontSize: '18px' }}>{emoji}</span>
-          <p style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 800, margin: 0 }}>{name}</p>
-        </div>
-        <span style={{
-          background: `${c}15`, border: `1px solid ${c}44`,
-          borderRadius: '20px', padding: '2px 8px',
-          color: c, fontSize: '9px', fontWeight: 700,
-          letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
-        }}>
-          {status}
-        </span>
-      </div>
-      <div>
-        <div style={{ background: '#1A1A1A', borderRadius: '3px', height: '4px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: c, borderRadius: '3px', transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)' }} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-          <span style={{ color: '#2A2A2A', fontSize: '10px' }}>{message}</span>
-          <span style={{ color: c, fontSize: '10px', fontWeight: 700 }}>Day {progress}/{total}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function CompactLockedCard({ emoji, name }) {
-  return (
-    <div style={{
-      background: '#0A0A0A', border: '1px solid #141414',
-      borderRadius: '18px', padding: '18px', position: 'relative',
-      display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.55,
-    }}>
+      {/* Hero: Score + Streak */}
       <div style={{
-        position: 'absolute', top: '12px', right: '12px',
-        background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
-        borderRadius: '20px', padding: '2px 7px',
-        color: '#F5C518', fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-      }}>SOON</div>
-      <span style={{ fontSize: '20px' }}>{emoji}</span>
-      <p style={{ color: '#444', fontSize: '13px', fontWeight: 800, margin: 0, paddingRight: '44px' }}>{name}</p>
-      <span style={{ position: 'absolute', bottom: '12px', right: '12px', fontSize: '14px' }}>🔒</span>
-    </div>
-  )
-}
+        background: '#0D0D0D', border: '1px solid #161616',
+        borderRadius: '24px', padding: '32px 28px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at bottom right, rgba(255,59,48,0.04) 0%, transparent 60%)',
+          pointerEvents: 'none',
+        }} />
+        <div>
+          <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
+            VRDIKT Score
+          </p>
+          {loading ? (
+            <p style={{ color: '#1E1E1E', fontSize: '64px', fontWeight: 900, margin: 0, letterSpacing: '-0.04em', lineHeight: 1 }}>—</p>
+          ) : latestScore !== null ? (
+            <p style={{ margin: 0, lineHeight: 1 }}>
+              <span style={{ color: scoreColor(latestScore), fontSize: '72px', fontWeight: 900, letterSpacing: '-0.04em' }}>
+                {latestScore}
+              </span>
+              <span style={{ color: '#1E1E1E', fontSize: '20px', fontWeight: 700, marginLeft: '4px' }}>/100</span>
+            </p>
+          ) : (
+            <p style={{ color: '#1E1E1E', fontSize: '20px', fontWeight: 700, margin: 0 }}>No roasts yet</p>
+          )}
+          {latestRoast?.personality_type && (
+            <p style={{ color: '#2A2A2A', fontSize: '11px', margin: '10px 0 0', fontWeight: 600 }}>
+              {latestRoast.personality_type}
+            </p>
+          )}
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+            Streak
+          </p>
+          <p style={{ margin: 0, lineHeight: 1 }}>
+            <span style={{ color: '#F5C518', fontSize: '44px', fontWeight: 900, letterSpacing: '-0.03em' }}>{streak}</span>
+            <span style={{ color: '#F5C518', fontSize: '16px', fontWeight: 700 }}>d</span>
+          </p>
+          {streak > 0 && <p style={{ color: '#333', fontSize: '10px', margin: '6px 0 0' }}>on fire</p>}
+        </div>
+      </div>
 
-// ─── gmail card ───────────────────────────────────────────────────────────────
+      {/* 3-stat row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+        {[
+          { label: 'Roasts',     value: loading ? '—' : roasts.length,                  accent: '#FF3B30' },
+          { label: 'XP Level',   value: loading ? '—' : `${xpData.xp} XP`,              accent: '#F5C518', sub: xpData.levelName },
+          { label: 'Best Score', value: loading || bestScore === null ? '—' : bestScore, accent: '#30D158' },
+        ].map(({ label, value, accent, sub }) => (
+          <div key={label} style={{
+            background: '#0D0D0D', border: '1px solid #161616',
+            borderRadius: '16px', padding: '16px 14px',
+            display: 'flex', flexDirection: 'column', gap: '4px',
+          }}>
+            <span style={{ color: '#333', fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
+            <span style={{ color: accent, fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{value}</span>
+            {sub && <span style={{ color: '#2A2A2A', fontSize: '10px', fontWeight: 500 }}>{sub}</span>}
+          </div>
+        ))}
+      </div>
 
-function GmailCard({ gmailStatus, onSync, syncing, navigate }) {
-  if (!gmailStatus) return null
-
-  if (!gmailStatus.connected) {
-    return (
+      {/* Spending Snapshot */}
       <div style={{
         background: '#0D0D0D', border: '1px solid #161616',
         borderRadius: '20px', padding: '22px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            width: '40px', height: '40px', borderRadius: '12px',
-            background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0,
-          }}>📧</div>
-          <div>
-            <p style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 800, margin: '0 0 3px' }}>Connect Gmail for Automatic Tracking</p>
-            <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>Pull bank transactions directly from your inbox</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
+            Spending Snapshot
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: gmailStatus?.connected ? '#30D158' : '#252525',
+            }} />
+            <span style={{ color: '#252525', fontSize: '10px', fontWeight: 600 }}>
+              {gmailStatus?.connected ? 'Gmail synced' : 'Gmail not connected'}
+            </span>
           </div>
         </div>
-        <button
-          onClick={() => navigate('/connect-gmail')}
-          style={{
-            background: '#F5C518', border: 'none', borderRadius: '10px',
-            padding: '10px 18px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0,
-          }}
-        >Connect Gmail →</button>
-      </div>
-    )
-  }
 
-  const lastSync = gmailStatus.lastSyncedAt
-    ? new Date(gmailStatus.lastSyncedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-    : 'Never'
-
-  return (
-    <div style={{
-      background: '#0D0D0D', border: '1px solid rgba(48,209,88,0.2)',
-      borderRadius: '20px', padding: '22px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <div style={{
-          width: '40px', height: '40px', borderRadius: '12px',
-          background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0,
-        }}>✅</div>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-            <p style={{ color: '#30D158', fontSize: '14px', fontWeight: 800, margin: 0 }}>Gmail Connected</p>
-            {gmailStatus.email && (
-              <span style={{ color: '#333', fontSize: '11px' }}>{gmailStatus.email}</span>
+        {!hasSpend ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <p style={{ color: '#2A2A2A', fontSize: '13px', margin: '0 0 4px' }}>No spending data yet.</p>
+            <p style={{ color: '#1E1E1E', fontSize: '12px', margin: 0 }}>
+              {gmailStatus?.connected ? 'Sync Gmail to import transactions.' : 'Connect Gmail or submit a roast to see your breakdown.'}
+            </p>
+            {!gmailStatus?.connected && (
+              <button
+                onClick={() => navigate('/connect-gmail')}
+                style={{
+                  marginTop: '14px', background: 'transparent',
+                  border: '1px solid rgba(245,197,24,0.25)', borderRadius: '8px',
+                  padding: '7px 16px', color: '#F5C518', fontSize: '12px', fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                }}
+              >Connect Gmail →</button>
             )}
           </div>
-          <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>
-            Last sync: {lastSync}
-            {gmailStatus.txCount != null && ` · ${gmailStatus.txCount} transactions`}
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={onSync}
-        disabled={syncing}
-        style={{
-          background: 'transparent', border: '1px solid rgba(48,209,88,0.3)', borderRadius: '10px',
-          padding: '9px 16px', color: '#30D158', fontSize: '13px', fontWeight: 700,
-          cursor: syncing ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif',
-          opacity: syncing ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0,
-          transition: 'opacity 0.15s',
-        }}
-      >{syncing ? 'Syncing…' : 'Sync Now'}</button>
-    </div>
-  )
-}
-
-// ─── transactions tab ─────────────────────────────────────────────────────────
-
-function TxRow({ tx }) {
-  const color = CATEGORY_COLORS[tx.category] ?? '#444'
-  return (
-    <div style={{
-      background: '#0D0D0D', border: '1px solid #161616',
-      borderRadius: '14px', padding: '14px 16px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-    }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
-            {tx.merchant}
-          </span>
-          <span style={{
-            background: `${color}18`, border: `1px solid ${color}33`,
-            borderRadius: '20px', padding: '1px 8px',
-            color, fontSize: '10px', fontWeight: 700, flexShrink: 0,
-          }}>{tx.category}</span>
-        </div>
-        <span style={{ color: '#333', fontSize: '11px' }}>{timeAgo(tx.date)}</span>
-      </div>
-      <span style={{ fontSize: '14px', fontWeight: 800, flexShrink: 0, color: tx.type === 'credit' ? '#30D158' : '#FF3B30' }}>
-        {tx.type === 'credit' ? '+' : '−'}₹{tx.amount.toLocaleString('en-IN')}
-      </span>
-    </div>
-  )
-}
-
-function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing }) {
-  const [filterCat, setFilterCat] = useState('')
-  const [filterType, setFilterType] = useState('all')
-
-  if (!gmailStatus?.connected) {
-    return (
-      <div style={{
-        background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '48px 24px',
-        textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
-      }}>
-        <span style={{ fontSize: '36px' }}>📧</span>
-        <p style={{ color: '#555', fontSize: '16px', fontWeight: 700, margin: 0 }}>Connect Gmail to track transactions automatically</p>
-        <button onClick={() => navigate('/connect-gmail')} style={{
-          background: '#F5C518', border: 'none', borderRadius: '10px',
-          padding: '11px 22px', color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
-          cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}>Connect Gmail →</button>
-      </div>
-    )
-  }
-
-  const txns = transactions ?? []
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const thisMonth  = txns.filter(tx => tx.date >= monthStart)
-  const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0)
-  const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
-
-  const categories = [...new Set(txns.map(t => t.category).filter(Boolean))].sort()
-
-  const filtered = txns.filter(tx => {
-    if (filterCat && tx.category !== filterCat) return false
-    if (filterType !== 'all' && tx.type !== filterType) return false
-    return true
-  })
-
-  const pillStyle = (active) => ({
-    background: active ? 'rgba(245,197,24,0.12)' : 'transparent',
-    border: `1px solid ${active ? 'rgba(245,197,24,0.4)' : '#1E1E1E'}`,
-    borderRadius: '999px', padding: '5px 13px',
-    color: active ? '#F5C518' : '#555',
-    fontSize: '11px', fontWeight: 700, cursor: 'pointer',
-    fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
-  })
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-      {/* Summary row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', padding: '16px' }}>
-          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>Debited this month</p>
-          <p style={{ color: '#FF3B30', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>₹{totalDebit.toLocaleString('en-IN')}</p>
-        </div>
-        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', padding: '16px' }}>
-          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>Credited this month</p>
-          <p style={{ color: '#30D158', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>₹{totalCredit.toLocaleString('en-IN')}</p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-        {/* Type filter */}
-        {['all', 'debit', 'credit'].map(t => (
-          <button key={t} style={pillStyle(filterType === t)} onClick={() => setFilterType(t)}>
-            {t === 'all' ? 'All' : t === 'debit' ? '↓ Debits' : '↑ Credits'}
-          </button>
-        ))}
-        <div style={{ width: '1px', height: '20px', background: '#1E1E1E' }} />
-        {/* Category filter */}
-        <button style={pillStyle(filterCat === '')} onClick={() => setFilterCat('')}>All Categories</button>
-        {categories.map(cat => (
-          <button key={cat} style={pillStyle(filterCat === cat)} onClick={() => setFilterCat(cat)}>{cat}</button>
-        ))}
-        {/* Sync button */}
-        <div style={{ marginLeft: 'auto' }}>
-          <button onClick={onSync} disabled={syncing} style={{
-            background: 'transparent', border: '1px solid #1E1E1E', borderRadius: '999px',
-            padding: '5px 13px', color: syncing ? '#333' : '#555', fontSize: '11px', fontWeight: 700,
-            cursor: syncing ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif',
-          }}>{syncing ? 'Syncing…' : '↻ Sync'}</button>
-        </div>
-      </div>
-
-      {/* List */}
-      {transactions === null ? (
-        <p style={{ color: '#333', fontSize: '13px', textAlign: 'center', padding: '32px 0' }}>Loading…</p>
-      ) : filtered.length === 0 ? (
-        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', padding: '36px 24px', textAlign: 'center' }}>
-          <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>
-            {txns.length === 0 ? 'Sync Gmail to import your bank transactions automatically.' : 'No transactions match the selected filters.'}
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {filtered.map(tx => <TxRow key={tx.id} tx={tx} />)}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── tab views ────────────────────────────────────────────────────────────────
-
-function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmailStatus, onGmailSync, syncing }) {
-  const latestRoast = roasts[0] ?? null
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-
-      {/* Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
-        gap: '10px',
-      }}>
-        {stats.map(s => <StatCard key={s.label} {...s} />)}
-      </div>
-
-      {/* Gmail Connection Card */}
-      <GmailCard gmailStatus={gmailStatus} onSync={onGmailSync} syncing={syncing} navigate={navigate} />
-
-      {/* Spending Breakdown */}
-      <SpendingBreakdown latestRoast={latestRoast} />
-
-      {/* Active Challenges mini grid */}
-      <div>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
-          Active Challenges
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
-          <CompactActiveCard
-            emoji="🍕" name="Zomato Detox"
-            progress={zomato?.daysClean ?? 0} total={7}
-            status={zomato?.status ?? 'active'}
-            message={zomato?.message ?? 'Submit spending to track'}
-          />
-          <CompactLockedCard emoji="💰" name="Savings Sprint" />
-          <CompactLockedCard emoji="📱" name="Subscription Audit" />
-        </div>
-      </div>
-
-      {/* BROक Mode */}
-      <div style={{
-        background: '#0A0A0A', border: '1px solid #141414', borderRadius: '20px', padding: '28px 24px',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(245,197,24,0.03) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '26px' }}>🔒</span>
-            <p style={{ color: '#555', fontSize: '15px', fontWeight: 800, margin: 0 }}>BROक Mode</p>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ position: 'relative', flexShrink: 0, width: '110px', height: '110px' }}>
+              <ResponsiveContainer width={110} height={110}>
+                <PieChart>
+                  <Pie
+                    data={catData}
+                    dataKey="amount"
+                    nameKey="name"
+                    innerRadius={34}
+                    outerRadius={52}
+                    paddingAngle={2}
+                    startAngle={90}
+                    endAngle={-270}
+                    strokeWidth={0}
+                  >
+                    {catData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} stroke="transparent" />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name) => [`₹${value.toLocaleString('en-IN')}`, name]}
+                    contentStyle={{ background: '#111', border: '1px solid #222', borderRadius: '8px', fontSize: '11px', fontFamily: 'Inter, sans-serif' }}
+                    itemStyle={{ color: '#F0F0F0' }}
+                    labelStyle={{ display: 'none' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center', pointerEvents: 'none',
+              }}>
+                <div style={{ color: '#E0E0E0', fontSize: '11px', fontWeight: 900, letterSpacing: '-0.01em', lineHeight: 1 }}>
+                  ₹{total >= 100000
+                    ? `${(total / 100000).toFixed(1)}L`
+                    : total >= 1000
+                    ? `${(total / 1000).toFixed(1)}k`
+                    : total}
+                </div>
+              </div>
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '11px' }}>
+              {top3.map(({ name, amount, color }) => (
+                <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: color, flexShrink: 0 }} />
+                    <span style={{ color: '#888', fontSize: '12px', fontWeight: 500 }}>{name}</span>
+                  </div>
+                  <span style={{ color, fontSize: '12px', fontWeight: 700 }}>₹{amount.toLocaleString('en-IN')}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <span style={{
-            background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
-            borderRadius: '20px', padding: '3px 10px', color: '#F5C518', fontSize: '9px', fontWeight: 700,
-            letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0,
-          }}>Coming Soon</span>
-        </div>
-        <p style={{ color: '#2E2E2E', fontSize: '13px', margin: '0 0 18px', lineHeight: 1.5 }}>
-          Challenge a friend. Whoever spends worse loses. Bragging rights included.
-        </p>
-        <button disabled style={{
-          background: 'transparent', border: '1px solid #1A1A1A', borderRadius: '10px', padding: '10px 20px',
-          color: '#252525', fontSize: '13px', fontWeight: 700, cursor: 'not-allowed', fontFamily: 'Inter, sans-serif',
-        }}>Coming Soon</button>
+        )}
       </div>
     </div>
   )
 }
+
+// ─── CHALLENGES TAB ───────────────────────────────────────────────────────────
 
 function ChallengesTab({ roasts, profile, zomato, navigate }) {
-  const xp = calculateXP(roasts)
+  const xp      = calculateXP(roasts)
   const monthly = generateMonthlyChallenge(profile, roasts)
 
   const statusColors = { not_started: '#555', on_track: '#30D158', at_risk: '#FF9F0A', exceeded: '#FF3B30', completed: '#30D158' }
   const statusColor  = statusColors[monthly.status] ?? '#555'
   const daysColor    = monthly.daysLeft > 15 ? '#30D158' : monthly.daysLeft > 7 ? '#FF9F0A' : '#FF3B30'
 
-  const QUICK = [
-    { emoji: '🍕', name: 'Zomato Detox',       xp: 100, locked: false },
-    { emoji: '💰', name: 'Savings Sprint',      xp: 150, locked: true  },
-    { emoji: '⚡', name: 'No Impulse Buys',     xp: 120, locked: true  },
-    { emoji: '📱', name: 'Subscription Audit',  xp: 80,  locked: true  },
-    { emoji: '🥊', name: 'Friend Duel',         xp: 200, locked: true  },
-    { emoji: '🏆', name: 'Annual Challenge',    xp: 500, locked: true  },
+  const QUICK_LOCKED = [
+    { emoji: '💰', name: 'Savings Sprint',      xp: 150 },
+    { emoji: '⚡', name: 'No Impulse Buys',     xp: 120 },
+    { emoji: '📱', name: 'Subscription Audit',  xp: 80  },
+    { emoji: '🥊', name: 'Friend Duel',         xp: 200 },
+    { emoji: '🏆', name: 'Annual Challenge',    xp: 500 },
   ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-      {/* XP & Level card */}
+      {/* Monthly Challenge — hero */}
       <div style={{
-        background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.15)',
-        borderRadius: '20px', padding: '24px',
+        background: '#111', border: '1px solid rgba(245,197,24,0.25)',
+        borderRadius: '24px', padding: '28px 24px',
+        boxShadow: '0 0 40px rgba(245,197,24,0.05)',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at top right, rgba(245,197,24,0.05) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at top left, rgba(245,197,24,0.04) 0%, transparent 55%)',
           pointerEvents: 'none',
         }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ color: '#F5C518', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
-              Current Level
+        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 18px' }}>
+          Monthly Challenge
+        </p>
+
+        {monthly.status === 'not_started' ? (
+          <div style={{ padding: '4px 0 8px' }}>
+            <p style={{ color: '#555', fontSize: '15px', fontWeight: 700, margin: '0 0 16px', lineHeight: 1.5 }}>
+              Submit your first roast to activate your challenge
             </p>
-            <h2 style={{ fontSize: 'clamp(18px, 4vw, 24px)', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 16px', color: '#F0F0F0' }}>
-              {xp.levelName.toUpperCase()}
-            </h2>
-            <div style={{ marginBottom: '8px' }}>
-              <div style={{
-                background: '#1A1A1A', borderRadius: '6px', height: '8px', overflow: 'hidden',
-                boxShadow: '0 0 12px rgba(245,197,24,0.1)',
-              }}>
+            {!profile && (
+              <button onClick={() => navigate('/onboarding')} style={{
+                background: '#F5C518', border: 'none', borderRadius: '10px',
+                padding: '10px 20px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              }}>Complete setup →</button>
+            )}
+          </div>
+        ) : (
+          <>
+            {monthly.savingFor && (
+              <p style={{ color: '#F5C518', fontSize: '11px', fontWeight: 600, margin: '0 0 8px', letterSpacing: '0.02em' }}>
+                Saving for: {monthly.savingFor}
+              </p>
+            )}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', margin: 0, color: '#F0F0F0' }}>
+                {monthly.title}
+              </h3>
+              <span style={{
+                background: `${statusColor}15`, border: `1px solid ${statusColor}44`,
+                borderRadius: '20px', padding: '3px 10px',
+                color: statusColor, fontSize: '10px', fontWeight: 700,
+                letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
+              }}>{monthly.status.replace('_', ' ')}</span>
+            </div>
+            <p style={{ color: '#444', fontSize: '13px', margin: '0 0 20px', lineHeight: 1.5 }}>{monthly.description}</p>
+
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ background: '#1A1A1A', borderRadius: '8px', height: '12px', overflow: 'hidden', marginBottom: '10px' }}>
                 <div style={{
-                  height: '100%', width: `${xp.progressPct}%`,
-                  background: 'linear-gradient(90deg, #F5C518, #FFD93D)',
-                  borderRadius: '6px', transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
+                  height: '100%', width: `${monthly.percentComplete}%`, background: statusColor,
+                  borderRadius: '8px', transition: 'width 0.9s cubic-bezier(0.16,1,0.3,1)',
                 }} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
-                <span style={{ color: '#F5C518', fontSize: '12px', fontWeight: 700 }}>{xp.xp} XP</span>
-                {xp.nextThreshold && (
-                  <span style={{ color: '#333', fontSize: '12px' }}>{xp.nextThreshold} XP next level</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0, minWidth: '140px' }}>
-            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>XP Breakdown</p>
-            {[
-              { label: 'Roasts',     val: (roasts?.length ?? 0) * 10 },
-              { label: 'Challenges', val: 0 },
-              { label: 'Streaks',    val: xp.xp - (roasts?.length ?? 0) * 10 },
-            ].map(({ label, val }) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
-                <span style={{ color: '#444', fontSize: '12px' }}>{label}</span>
-                <span style={{ color: '#F5C518', fontSize: '12px', fontWeight: 700 }}>+{Math.max(0, val)} XP</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Monthly Challenge */}
-      <div>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
-          Your Monthly Challenge
-        </p>
-        <div style={{
-          background: '#111', border: '1px solid rgba(245,197,24,0.2)',
-          borderRadius: '20px', padding: '24px',
-          boxShadow: '0 0 40px rgba(245,197,24,0.05)',
-        }}>
-          {monthly.status === 'not_started' ? (
-            <div style={{ textAlign: 'center', padding: '16px 0' }}>
-              <p style={{ color: '#555', fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>
-                Submit your first roast to activate your challenge 🔥
-              </p>
-              {!profile && (
-                <button onClick={() => navigate('/onboarding')} style={{
-                  background: '#F5C518', border: 'none', borderRadius: '10px',
-                  padding: '10px 20px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                }}>Complete setup →</button>
-              )}
-            </div>
-          ) : (
-            <>
-              {monthly.savingFor && (
-                <p style={{ color: '#F5C518', fontSize: '11px', fontWeight: 600, margin: '0 0 8px', letterSpacing: '0.02em' }}>
-                  Saving for: {monthly.savingFor}
-                </p>
-              )}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', margin: 0, color: '#F0F0F0' }}>
-                  {monthly.title}
-                </h3>
-                <span style={{
-                  background: `${statusColor}15`, border: `1px solid ${statusColor}44`,
-                  borderRadius: '20px', padding: '3px 10px',
-                  color: statusColor, fontSize: '10px', fontWeight: 700,
-                  letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
-                }}>{monthly.status.replace('_', ' ')}</span>
-              </div>
-              <p style={{ color: '#555', fontSize: '13px', margin: '0 0 16px', lineHeight: 1.5 }}>{monthly.description}</p>
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ background: '#1A1A1A', borderRadius: '6px', height: '10px', overflow: 'hidden', marginBottom: '8px' }}>
-                  <div style={{
-                    height: '100%', width: `${monthly.percentComplete}%`, background: statusColor,
-                    borderRadius: '6px', transition: 'width 0.9s cubic-bezier(0.16,1,0.3,1)',
-                  }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#555', fontSize: '12px' }}>
-                    ₹{monthly.current.toLocaleString('en-IN')} spent
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div>
+                  <span style={{ color: '#F0F0F0', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em' }}>
+                    ₹{monthly.current.toLocaleString('en-IN')}
                   </span>
-                  <span style={{ color: '#333', fontSize: '12px' }}>
-                    ₹{monthly.target.toLocaleString('en-IN')} target
-                  </span>
+                  <span style={{ color: '#333', fontSize: '13px', fontWeight: 600 }}> of ₹{monthly.target.toLocaleString('en-IN')}</span>
                 </div>
-              </div>
-              {monthly.projectedSavings > 0 && (
-                <div style={{
-                  background: 'rgba(48,209,88,0.06)', border: '1px solid rgba(48,209,88,0.15)',
-                  borderRadius: '12px', padding: '12px 16px', marginBottom: '12px',
-                }}>
-                  <p style={{ color: '#30D158', fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                    Hit this target = save ₹{monthly.projectedSavings.toLocaleString('en-IN')} this month
-                    {monthly.savingFor ? ` toward "${monthly.savingFor}"` : ''}
-                  </p>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: daysColor, fontSize: '13px', fontWeight: 700 }}>
-                  {monthly.daysLeft} days left
-                </span>
-                <span style={{ color: '#F5C518', fontSize: '12px', fontWeight: 600 }}>
-                  +{monthly.xpReward} XP on completion
+                  {monthly.daysLeft}d left
                 </span>
               </div>
-            </>
-          )}
-        </div>
+            </div>
+
+            {monthly.projectedSavings > 0 && (
+              <p style={{ color: '#30D158', fontSize: '12px', margin: '10px 0 0', fontWeight: 600 }}>
+                Hit target → save ₹{monthly.projectedSavings.toLocaleString('en-IN')} this month
+              </p>
+            )}
+            <p style={{ color: '#2A2A2A', fontSize: '11px', margin: '6px 0 0' }}>
+              +{monthly.xpReward} XP on completion
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Quick Challenges 2-col grid */}
+      {/* Quick Challenges 2-col */}
       <div>
         <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
           Quick Challenges
@@ -710,12 +371,11 @@ function ChallengesTab({ roasts, profile, zomato, navigate }) {
             <span style={{ color: '#333', fontSize: '10px' }}>Day {zomato?.daysClean ?? 0}/7</span>
           </div>
 
-          {/* Locked quick challenges */}
-          {QUICK.filter(q => q.locked).map(q => (
+          {QUICK_LOCKED.map(q => (
             <div key={q.name} style={{
               background: '#0A0A0A', border: '1px solid #141414',
               borderRadius: '18px', padding: '18px', position: 'relative',
-              display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.55,
+              display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.5,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '22px' }}>{q.emoji}</span>
@@ -726,60 +386,251 @@ function ChallengesTab({ roasts, profile, zomato, navigate }) {
                 }}>+{q.xp} XP SOON</span>
               </div>
               <p style={{ color: '#444', fontSize: '13px', fontWeight: 800, margin: 0 }}>{q.name}</p>
-              <span style={{ position: 'absolute', bottom: '14px', right: '14px', fontSize: '16px' }}>🔒</span>
+              <span style={{ position: 'absolute', bottom: '14px', right: '14px', fontSize: '14px' }}>🔒</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Leaderboard Preview */}
+      {/* XP & Level — compact */}
+      <div style={{
+        background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.1)',
+        borderRadius: '16px', padding: '18px 20px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <span style={{ color: '#F5C518', fontSize: '13px', fontWeight: 800 }}>{xp.levelName}</span>
+          <span style={{ color: '#F5C518', fontSize: '13px', fontWeight: 700 }}>{xp.xp} XP</span>
+        </div>
+        <div style={{ background: '#1A1A1A', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', width: `${xp.progressPct}%`,
+            background: 'linear-gradient(90deg, #F5C518, #FFD93D)',
+            borderRadius: '4px', transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
+          }} />
+        </div>
+        {xp.nextThreshold && (
+          <p style={{ color: '#222', fontSize: '10px', margin: '6px 0 0' }}>
+            {xp.nextThreshold} XP to next level
+          </p>
+        )}
+      </div>
+
+      {/* BROक Mode — locked small card */}
       <div style={{
         background: '#0A0A0A', border: '1px solid #141414',
-        borderRadius: '20px', padding: '24px', position: 'relative', overflow: 'hidden',
+        borderRadius: '16px', padding: '16px 18px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+        opacity: 0.65,
       }}>
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '6px' }}>
-            <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
-              Leaderboard
-            </p>
-            <span style={{
-              background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.15)',
-              borderRadius: '20px', padding: '2px 9px',
-              color: '#F5C518', fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-            }}>₹899 Plan</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '18px' }}>🔒</span>
+          <div>
+            <p style={{ color: '#555', fontSize: '13px', fontWeight: 800, margin: 0 }}>BROक Mode</p>
+            <p style={{ color: '#2A2A2A', fontSize: '11px', margin: '2px 0 0' }}>Challenge a friend. Loser gets roasted publicly.</p>
           </div>
-          <p style={{ color: '#2A2A2A', fontSize: '13px', margin: 0 }}>
-            See how you rank against other financially hopeless Indians
-          </p>
         </div>
-        {/* Blurred fake entries */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}>
-          {[
-            { rank: 1, name: '██████ M.', xp: 1240, level: 'Getting There' },
-            { rank: 2, name: '████ K.',   xp: 890,  level: 'Almost Responsible' },
-            { rank: 3, name: '███████ S.', xp: 650, level: 'Almost Responsible' },
-          ].map(e => (
-            <div key={e.rank} style={{
-              background: '#111', borderRadius: '12px', padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: '12px',
-            }}>
-              <span style={{ color: '#F5C518', fontSize: '14px', fontWeight: 900, width: '20px' }}>#{e.rank}</span>
-              <span style={{ flex: 1, color: '#888', fontSize: '13px', fontWeight: 600 }}>{e.name}</span>
-              <span style={{ color: '#F5C518', fontSize: '12px', fontWeight: 700 }}>{e.xp} XP</span>
-            </div>
-          ))}
-        </div>
-        {/* Overlay */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, top: '50%',
-          background: 'linear-gradient(to bottom, transparent, rgba(10,10,10,0.95) 60%)',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px',
-        }}>
-          <p style={{ color: '#333', fontSize: '13px', fontWeight: 600, margin: 0, textAlign: 'center' }}>
-            Friend Comparisons — Coming with ₹899 plan
-          </p>
+        <span style={{
+          background: 'rgba(245,197,24,0.06)', border: '1px solid rgba(245,197,24,0.12)',
+          borderRadius: '20px', padding: '3px 9px',
+          color: '#444', fontSize: '8px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
+          flexShrink: 0,
+        }}>Soon</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── TRANSACTIONS TAB ─────────────────────────────────────────────────────────
+
+function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing, roasts }) {
+  const [filterCat, setFilterCat]       = useState('')
+  const [filterType, setFilterType]     = useState('all')
+  const [visibleCount, setVisibleCount] = useState(30)
+
+  useEffect(() => { setVisibleCount(30) }, [filterCat, filterType])
+
+  if (!gmailStatus?.connected) {
+    return (
+      <div style={{
+        background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '48px 24px',
+        textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+      }}>
+        <p style={{ color: '#555', fontSize: '15px', fontWeight: 700, margin: 0 }}>Connect Gmail to track transactions automatically</p>
+        <button onClick={() => navigate('/connect-gmail')} style={{
+          background: '#F5C518', border: 'none', borderRadius: '10px',
+          padding: '11px 22px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
+          cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}>Connect Gmail →</button>
+      </div>
+    )
+  }
+
+  const txns = transactions ?? []
+  const now = new Date()
+  const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const thisMonth   = txns.filter(tx => tx.date >= monthStart)
+  const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0)
+  const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
+  const net         = totalCredit - totalDebit
+
+  const categories = [...new Set(txns.map(t => t.category).filter(Boolean))].sort()
+
+  const filtered = txns.filter(tx => {
+    if (filterCat && tx.category !== filterCat) return false
+    if (filterType !== 'all' && tx.type !== filterType) return false
+    return true
+  })
+
+  const pill = (active) => ({
+    background: active ? 'rgba(245,197,24,0.1)' : 'transparent',
+    border: `1px solid ${active ? 'rgba(245,197,24,0.35)' : '#1E1E1E'}`,
+    borderRadius: '999px', padding: '4px 11px',
+    color: active ? '#F5C518' : '#3A3A3A',
+    fontSize: '10px', fontWeight: 700, cursor: 'pointer',
+    fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+  })
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {/* Hero: spending summary */}
+      <div style={{
+        background: '#0D0D0D', border: '1px solid #161616',
+        borderRadius: '20px', padding: '24px',
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+      }}>
+        {[
+          { label: 'Debited',  value: `₹${totalDebit.toLocaleString('en-IN')}`,                         color: '#FF3B30' },
+          { label: 'Credited', value: `₹${totalCredit.toLocaleString('en-IN')}`,                        color: '#30D158' },
+          { label: 'Net',      value: `${net >= 0 ? '+' : ''}₹${Math.abs(net).toLocaleString('en-IN')}`, color: net >= 0 ? '#30D158' : '#FF3B30' },
+        ].map(({ label, value, color }, i) => (
+          <div key={label} style={{
+            borderLeft: i > 0 ? '1px solid #161616' : 'none',
+            paddingLeft: i > 0 ? '18px' : '0',
+            paddingRight: i < 2 ? '18px' : '0',
+          }}>
+            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+              {label}
+            </p>
+            <p style={{ color, fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0, lineHeight: 1 }}>
+              {value}
+            </p>
+            <p style={{ color: '#2A2A2A', fontSize: '10px', margin: '4px 0 0' }}>this month</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Compact filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
+        {['all', 'debit', 'credit'].map(t => (
+          <button key={t} style={pill(filterType === t)} onClick={() => setFilterType(t)}>
+            {t === 'all' ? 'All' : t === 'debit' ? 'Debits' : 'Credits'}
+          </button>
+        ))}
+        <div style={{ width: '1px', height: '14px', background: '#1E1E1E' }} />
+        <button style={pill(filterCat === '')} onClick={() => setFilterCat('')}>All</button>
+        {categories.map(cat => (
+          <button key={cat} style={pill(filterCat === cat)} onClick={() => setFilterCat(cat)}>{cat}</button>
+        ))}
+        <div style={{ marginLeft: 'auto' }}>
+          <button onClick={onSync} disabled={syncing} style={pill(false)}>
+            {syncing ? 'Syncing…' : '↻ Sync'}
+          </button>
         </div>
       </div>
+
+      {/* Dense divider-line list */}
+      {transactions === null ? (
+        <p style={{ color: '#333', fontSize: '13px', textAlign: 'center', padding: '32px 0' }}>Loading…</p>
+      ) : filtered.length === 0 ? (
+        <p style={{ color: '#2A2A2A', fontSize: '13px', textAlign: 'center', padding: '32px 0' }}>
+          {txns.length === 0 ? 'Sync Gmail to import transactions.' : 'No transactions match the filters.'}
+        </p>
+      ) : (
+        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', overflow: 'hidden' }}>
+          {filtered.slice(0, visibleCount).map((tx, i) => {
+            const catColor = CATEGORY_COLORS[tx.category] ?? '#444'
+            const isLast   = i === Math.min(filtered.length, visibleCount) - 1 && filtered.length <= visibleCount
+            return (
+              <div
+                key={tx.id}
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: isLast ? 'none' : '1px solid #0F0F0F',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <span style={{ color: '#CCCCCC', fontSize: '12px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
+                      {tx.merchant}
+                    </span>
+                    <span style={{
+                      color: catColor, fontSize: '9px', fontWeight: 700,
+                      background: `${catColor}12`, borderRadius: '4px', padding: '1px 5px',
+                      flexShrink: 0,
+                    }}>{tx.category}</span>
+                  </div>
+                  <span style={{ color: '#2A2A2A', fontSize: '10px' }}>{timeAgo(tx.date)}</span>
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 800, flexShrink: 0, color: tx.type === 'credit' ? '#30D158' : '#FF3B30' }}>
+                  {tx.type === 'credit' ? '+' : '−'}₹{tx.amount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            )
+          })}
+          {filtered.length > visibleCount && (
+            <div style={{ padding: '13px 16px', borderTop: '1px solid #0F0F0F', textAlign: 'center' }}>
+              <button
+                onClick={() => setVisibleCount(v => v + 30)}
+                style={{
+                  background: 'transparent', border: 'none',
+                  color: '#444', fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                Load more ({filtered.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Roast History */}
+      {roasts.length > 0 && (
+        <div>
+          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 12px' }}>
+            Roast History
+          </p>
+          <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', overflow: 'hidden' }}>
+            {roasts.slice(0, 10).map((r, i) => (
+              <div
+                key={r.id}
+                style={{
+                  padding: '13px 16px',
+                  borderBottom: i < Math.min(roasts.length, 10) - 1 ? '1px solid #0F0F0F' : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                }}
+              >
+                <div>
+                  <p style={{ color: '#888', fontSize: '12px', fontWeight: 600, margin: 0 }}>
+                    {r.personality_type ?? 'Roast'}
+                  </p>
+                  <p style={{ color: '#2A2A2A', fontSize: '10px', margin: '2px 0 0' }}>{formatDate(r.created_at)}</p>
+                </div>
+                {r.score != null && (
+                  <p style={{ margin: 0, flexShrink: 0 }}>
+                    <span style={{ color: scoreColor(r.score), fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      {r.score}
+                    </span>
+                    <span style={{ color: '#1E1E1E', fontSize: '10px', fontWeight: 700 }}>/100</span>
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -789,7 +640,6 @@ function ChallengesTab({ roasts, profile, zomato, navigate }) {
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const isMobile = useMobile()
 
   const [roasts, setRoasts]           = useState(null)
   const [tab, setTab]                 = useState('overview')
@@ -839,7 +689,6 @@ export default function Dashboard() {
     loadAutoTxns(user.id)
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-sync silently on mount when Gmail is connected
   useEffect(() => {
     if (!user || !profile?.gmail_connected) return
     fetch('/api/gmail-sync', {
@@ -868,11 +717,7 @@ export default function Dashboard() {
       })
       const data = await res.json()
       if (data.success) {
-        setGmailStatus(prev => ({
-          ...prev,
-          lastSyncedAt: new Date().toISOString(),
-          txCount: data.count ?? prev?.txCount,
-        }))
+        setGmailStatus(prev => ({ ...prev, lastSyncedAt: new Date().toISOString(), txCount: data.count ?? prev?.txCount }))
         await loadAutoTxns(user.id)
       }
     } finally {
@@ -885,27 +730,14 @@ export default function Dashboard() {
     navigate('/', { replace: true })
   }
 
-  const loading    = roasts === null
-  const scores     = roasts?.map(r => r.score).filter(s => typeof s === 'number') ?? []
-  const streak     = calcStreak(roasts ?? [])
-  const worstScore = scores.length ? Math.min(...scores) : null
-  const bestScore  = scores.length ? Math.max(...scores) : null
-  const zomato     = roasts ? checkZomatoDetox(roasts) : null
-  const xpData     = calculateXP(roasts ?? [])
-
-  const STATS = [
-    { label: 'Total Roasts',   value: loading ? '—' : roasts.length,                   accent: '#FF3B30' },
-    { label: 'Current Streak', value: loading ? '—' : `${streak}d`,                     accent: '#F5C518' },
-    { label: 'Worst Score',    value: loading || worstScore === null ? '—' : worstScore, accent: '#FF3B30' },
-    { label: 'Best Score',     value: loading || bestScore  === null ? '—' : bestScore,  accent: '#30D158' },
-    { label: 'XP Level',       value: loading ? '—' : `${xpData.xp} XP`,               accent: '#F5C518', sub: xpData.levelName },
-  ]
+  const loading = roasts === null
+  const zomato  = roasts ? checkZomatoDetox(roasts) : null
 
   const TABS = [
-    { id: 'overview',      label: 'OVERVIEW' },
-    { id: 'transactions',  label: 'TRANSACTIONS' },
-    { id: 'challenges',    label: 'CHALLENGES' },
-    { id: 'couple',        label: 'COUPLE MODE' },
+    { id: 'overview',     label: 'OVERVIEW' },
+    { id: 'transactions', label: 'TRANSACTIONS' },
+    { id: 'challenges',   label: 'CHALLENGES' },
+    { id: 'couple',       label: 'COUPLE' },
   ]
 
   return (
@@ -914,42 +746,37 @@ export default function Dashboard() {
       fontFamily: 'Inter, sans-serif', color: '#F0F0F0',
       display: 'flex', flexDirection: 'column',
     }}>
-
-      {/* Nav */}
       <AppNav loggedIn showDashboardBtn={false} user={user} onSignOut={handleSignOut} />
 
-      {/* Content */}
       <div style={{
         flex: 1, maxWidth: 800, width: '100%',
-        margin: '0 auto', padding: '44px 20px 80px',
-        display: 'flex', flexDirection: 'column', gap: '28px',
+        margin: '0 auto', padding: '32px 20px 80px',
+        display: 'flex', flexDirection: 'column', gap: '22px',
       }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+        {/* Compact header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
           <div>
-            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
+            <p style={{ color: '#1E1E1E', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>
               Financial Crime Record
             </p>
-            <h1 style={{ fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1 }}>
-              Your Dashboard
+            <h1 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1 }}>
+              Dashboard
             </h1>
           </div>
           <button
             onClick={() => navigate('/upload')}
             style={{
-              background: '#F5C518', border: 'none', borderRadius: '12px',
-              padding: '13px 22px', color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em', whiteSpace: 'nowrap',
-              boxShadow: '0 0 32px rgba(245,197,24,0.2)', transition: 'opacity 0.15s, transform 0.15s', flexShrink: 0,
+              background: '#F5C518', border: 'none', borderRadius: '10px',
+              padding: '11px 18px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap', boxShadow: '0 0 24px rgba(245,197,24,0.15)', flexShrink: 0,
             }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
-          >Get Roasted 🔥</button>
+          >Get Roasted</button>
         </div>
 
-        {/* Tab Pills */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Tab pills — smaller */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {TABS.map(({ id, label }) => {
             const active = tab === id
             return (
@@ -959,31 +786,35 @@ export default function Dashboard() {
                 style={{
                   background: active ? '#F5C518' : 'transparent',
                   border: `1px solid ${active ? '#F5C518' : '#1E1E1E'}`,
-                  borderRadius: '999px', padding: '8px 20px',
-                  color: active ? '#0A0A0A' : '#555',
-                  fontSize: '12px', fontWeight: 800, letterSpacing: '0.08em',
+                  borderRadius: '999px', padding: '6px 14px',
+                  color: active ? '#0A0A0A' : '#444',
+                  fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em',
                   cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                   transition: 'background 0.15s, color 0.15s, border-color 0.15s',
                 }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = '#F5C518'; e.currentTarget.style.color = '#F5C518' } }}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = '#1E1E1E'; e.currentTarget.style.color = '#555' } }}
               >{label}</button>
             )
           })}
         </div>
 
         {tab === 'overview' && (
-          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} gmailStatus={gmailStatus} onGmailSync={handleGmailSync} syncing={syncing} />
+          <OverviewTab
+            roasts={roasts ?? []} loading={loading}
+            gmailStatus={gmailStatus} autoTxns={autoTxns}
+            navigate={navigate}
+          />
         )}
         {tab === 'transactions' && (
-          <TransactionsTab transactions={autoTxns} gmailStatus={gmailStatus} navigate={navigate} onSync={handleGmailSync} syncing={syncing} />
+          <TransactionsTab
+            transactions={autoTxns} gmailStatus={gmailStatus}
+            navigate={navigate} onSync={handleGmailSync} syncing={syncing}
+            roasts={roasts ?? []}
+          />
         )}
         {tab === 'challenges' && (
           <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
         )}
-        {tab === 'couple' && (
-          <CoupleMode />
-        )}
+        {tab === 'couple' && <CoupleMode />}
       </div>
     </div>
   )
