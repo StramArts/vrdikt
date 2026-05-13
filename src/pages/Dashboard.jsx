@@ -322,66 +322,132 @@ function GmailCard({ gmailStatus, onSync, syncing, navigate }) {
   )
 }
 
-// ─── auto transactions list ───────────────────────────────────────────────────
+// ─── transactions tab ─────────────────────────────────────────────────────────
 
-function AutoTransactionsList({ transactions }) {
-  if (transactions === null) return null // still loading
+function TxRow({ tx }) {
+  const color = CATEGORY_COLORS[tx.category] ?? '#444'
+  return (
+    <div style={{
+      background: '#0D0D0D', border: '1px solid #161616',
+      borderRadius: '14px', padding: '14px 16px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
+            {tx.merchant}
+          </span>
+          <span style={{
+            background: `${color}18`, border: `1px solid ${color}33`,
+            borderRadius: '20px', padding: '1px 8px',
+            color, fontSize: '10px', fontWeight: 700, flexShrink: 0,
+          }}>{tx.category}</span>
+        </div>
+        <span style={{ color: '#333', fontSize: '11px' }}>{timeAgo(tx.date)}</span>
+      </div>
+      <span style={{ fontSize: '14px', fontWeight: 800, flexShrink: 0, color: tx.type === 'credit' ? '#30D158' : '#FF3B30' }}>
+        {tx.type === 'credit' ? '+' : '−'}₹{tx.amount.toLocaleString('en-IN')}
+      </span>
+    </div>
+  )
+}
 
-  const show = transactions.slice(0, 20)
-  const hasMore = transactions.length > 20
+function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing }) {
+  const [filterCat, setFilterCat] = useState('')
+  const [filterType, setFilterType] = useState('all')
+
+  if (!gmailStatus?.connected) {
+    return (
+      <div style={{
+        background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '48px 24px',
+        textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+      }}>
+        <span style={{ fontSize: '36px' }}>📧</span>
+        <p style={{ color: '#555', fontSize: '16px', fontWeight: 700, margin: 0 }}>Connect Gmail to track transactions automatically</p>
+        <button onClick={() => navigate('/connect-gmail')} style={{
+          background: '#F5C518', border: 'none', borderRadius: '10px',
+          padding: '11px 22px', color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
+          cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}>Connect Gmail →</button>
+      </div>
+    )
+  }
+
+  const txns = transactions ?? []
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const thisMonth  = txns.filter(tx => tx.date >= monthStart)
+  const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0)
+  const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
+
+  const categories = [...new Set(txns.map(t => t.category).filter(Boolean))].sort()
+
+  const filtered = txns.filter(tx => {
+    if (filterCat && tx.category !== filterCat) return false
+    if (filterType !== 'all' && tx.type !== filterType) return false
+    return true
+  })
+
+  const pillStyle = (active) => ({
+    background: active ? 'rgba(245,197,24,0.12)' : 'transparent',
+    border: `1px solid ${active ? 'rgba(245,197,24,0.4)' : '#1E1E1E'}`,
+    borderRadius: '999px', padding: '5px 13px',
+    color: active ? '#F5C518' : '#555',
+    fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+    fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+  })
 
   return (
-    <div>
-      <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
-        Auto-Tracked Transactions
-      </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      {show.length === 0 ? (
-        <div style={{
-          background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px',
-          padding: '28px 24px', textAlign: 'center',
-        }}>
+      {/* Summary row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', padding: '16px' }}>
+          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>Debited this month</p>
+          <p style={{ color: '#FF3B30', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>₹{totalDebit.toLocaleString('en-IN')}</p>
+        </div>
+        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', padding: '16px' }}>
+          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>Credited this month</p>
+          <p style={{ color: '#30D158', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>₹{totalCredit.toLocaleString('en-IN')}</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+        {/* Type filter */}
+        {['all', 'debit', 'credit'].map(t => (
+          <button key={t} style={pillStyle(filterType === t)} onClick={() => setFilterType(t)}>
+            {t === 'all' ? 'All' : t === 'debit' ? '↓ Debits' : '↑ Credits'}
+          </button>
+        ))}
+        <div style={{ width: '1px', height: '20px', background: '#1E1E1E' }} />
+        {/* Category filter */}
+        <button style={pillStyle(filterCat === '')} onClick={() => setFilterCat('')}>All Categories</button>
+        {categories.map(cat => (
+          <button key={cat} style={pillStyle(filterCat === cat)} onClick={() => setFilterCat(cat)}>{cat}</button>
+        ))}
+        {/* Sync button */}
+        <div style={{ marginLeft: 'auto' }}>
+          <button onClick={onSync} disabled={syncing} style={{
+            background: 'transparent', border: '1px solid #1E1E1E', borderRadius: '999px',
+            padding: '5px 13px', color: syncing ? '#333' : '#555', fontSize: '11px', fontWeight: 700,
+            cursor: syncing ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif',
+          }}>{syncing ? 'Syncing…' : '↻ Sync'}</button>
+        </div>
+      </div>
+
+      {/* List */}
+      {transactions === null ? (
+        <p style={{ color: '#333', fontSize: '13px', textAlign: 'center', padding: '32px 0' }}>Loading…</p>
+      ) : filtered.length === 0 ? (
+        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', padding: '36px 24px', textAlign: 'center' }}>
           <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>
-            Sync Gmail to see your transactions automatically
+            {txns.length === 0 ? 'Sync Gmail to import your bank transactions automatically.' : 'No transactions match the selected filters.'}
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {show.map(tx => {
-            const color = CATEGORY_COLORS[tx.category] ?? '#444'
-            return (
-              <div key={tx.id} style={{
-                background: '#0D0D0D', border: '1px solid #161616',
-                borderRadius: '14px', padding: '14px 16px',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
-                      {tx.merchant}
-                    </span>
-                    <span style={{
-                      background: `${color}18`, border: `1px solid ${color}33`,
-                      borderRadius: '20px', padding: '1px 8px',
-                      color, fontSize: '10px', fontWeight: 700, flexShrink: 0,
-                    }}>{tx.category}</span>
-                  </div>
-                  <span style={{ color: '#333', fontSize: '11px' }}>{timeAgo(tx.date)}</span>
-                </div>
-                <span style={{
-                  fontSize: '14px', fontWeight: 800, flexShrink: 0,
-                  color: tx.type === 'credit' ? '#30D158' : '#FF3B30',
-                }}>
-                  {tx.type === 'credit' ? '+' : '−'}₹{tx.amount.toLocaleString('en-IN')}
-                </span>
-              </div>
-            )
-          })}
-          {hasMore && (
-            <p style={{ color: '#555', fontSize: '12px', fontWeight: 600, textAlign: 'center', margin: '8px 0 0', cursor: 'default' }}>
-              + more transactions from this month
-            </p>
-          )}
+          {filtered.map(tx => <TxRow key={tx.id} tx={tx} />)}
         </div>
       )}
     </div>
@@ -390,7 +456,7 @@ function AutoTransactionsList({ transactions }) {
 
 // ─── tab views ────────────────────────────────────────────────────────────────
 
-function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmailStatus, onGmailSync, syncing, autoTxns }) {
+function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmailStatus, onGmailSync, syncing }) {
   const latestRoast = roasts[0] ?? null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -406,9 +472,6 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmail
 
       {/* Gmail Connection Card */}
       <GmailCard gmailStatus={gmailStatus} onSync={onGmailSync} syncing={syncing} navigate={navigate} />
-
-      {/* Auto-tracked Transactions */}
-      {gmailStatus?.connected && <AutoTransactionsList transactions={autoTxns} />}
 
       {/* Spending Breakdown */}
       <SpendingBreakdown latestRoast={latestRoast} />
@@ -428,64 +491,6 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmail
           <CompactLockedCard emoji="💰" name="Savings Sprint" />
           <CompactLockedCard emoji="📱" name="Subscription Audit" />
         </div>
-      </div>
-
-      {/* Roast History */}
-      <div>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
-          Roast History
-        </p>
-        {loading && <p style={{ color: '#333', fontSize: '14px', padding: '32px 0', textAlign: 'center' }}>Loading…</p>}
-        {!loading && roasts.length === 0 && (
-          <div style={{
-            background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '48px 24px',
-            textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
-          }}>
-            <span style={{ fontSize: '36px' }}>📂</span>
-            <p style={{ color: '#555', fontSize: '18px', fontWeight: 700, margin: 0 }}>No crimes on record. Yet.</p>
-            <button onClick={() => navigate('/upload')} style={{
-              background: '#F5C518', border: 'none', borderRadius: '10px',
-              padding: '11px 22px', color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}>Get Roasted →</button>
-          </div>
-        )}
-        {!loading && roasts.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {roasts.map(r => {
-              const parsed = parseRoast(r.roast_text ?? '')
-              const preview = r.roast_lines?.[0] ?? parsed.roastLines?.[0] ?? '—'
-              const personality = r.personality_type ?? parsed.personalityType
-              const sc = r.score ?? parsed.score
-              return (
-                <div key={r.id} style={{
-                  background: '#0D0D0D', border: '1px solid #161616', borderRadius: '18px', padding: '20px 22px',
-                  display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px',
-                }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ color: '#333', fontSize: '12px' }}>{formatDate(r.created_at)}</span>
-                      {personality && (
-                        <span style={{
-                          background: 'rgba(245,197,24,0.08)', border: '1px solid rgba(245,197,24,0.15)',
-                          borderRadius: '20px', padding: '2px 9px', color: '#F5C518', fontSize: '11px', fontWeight: 600,
-                        }}>{personality}</span>
-                      )}
-                    </div>
-                    <p style={{
-                      color: '#666', fontSize: '13px', margin: 0, lineHeight: 1.5, overflow: 'hidden',
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                    }}>"{preview}"</p>
-                  </div>
-                  <div style={{ flexShrink: 0, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                    <span style={{ color: scoreColor(sc), fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em' }}>{sc ?? '—'}</span>
-                    <span style={{ color: '#2A2A2A', fontSize: '10px', fontWeight: 600 }}>/100</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
 
       {/* BROक Mode */}
@@ -825,7 +830,7 @@ export default function Dashboard() {
       .select('id, merchant, category, amount, type, date')
       .eq('user_id', uid)
       .order('date', { ascending: false })
-      .limit(21)
+      .limit(300)
     setAutoTxns(data ?? [])
   }
 
@@ -897,9 +902,10 @@ export default function Dashboard() {
   ]
 
   const TABS = [
-    { id: 'overview',    label: 'OVERVIEW' },
-    { id: 'challenges',  label: 'CHALLENGES' },
-    { id: 'couple',      label: 'COUPLE MODE' },
+    { id: 'overview',      label: 'OVERVIEW' },
+    { id: 'transactions',  label: 'TRANSACTIONS' },
+    { id: 'challenges',    label: 'CHALLENGES' },
+    { id: 'couple',        label: 'COUPLE MODE' },
   ]
 
   return (
@@ -967,7 +973,10 @@ export default function Dashboard() {
         </div>
 
         {tab === 'overview' && (
-          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} gmailStatus={gmailStatus} onGmailSync={handleGmailSync} syncing={syncing} autoTxns={autoTxns} />
+          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} gmailStatus={gmailStatus} onGmailSync={handleGmailSync} syncing={syncing} />
+        )}
+        {tab === 'transactions' && (
+          <TransactionsTab transactions={autoTxns} gmailStatus={gmailStatus} navigate={navigate} onSync={handleGmailSync} syncing={syncing} />
         )}
         {tab === 'challenges' && (
           <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
