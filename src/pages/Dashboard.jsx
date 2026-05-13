@@ -36,6 +36,28 @@ function calcStreak(roasts) {
   return n
 }
 
+function timeAgo(ts) {
+  const sec = Math.floor((Date.now() - new Date(ts)) / 1000)
+  if (sec < 60)   return 'just now'
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`
+  const d = Math.floor(sec / 86400)
+  return d === 1 ? 'yesterday' : `${d} days ago`
+}
+
+const CATEGORY_COLORS = {
+  'Food Delivery': '#FF3B30',
+  'Groceries':     '#FF9500',
+  'Shopping':      '#F5C518',
+  'Entertainment': '#AF52DE',
+  'Transport':     '#4CAF50',
+  'Finance / EMI': '#636366',
+  'Dining':        '#FF6B35',
+  'Health':        '#30D158',
+  'Bills':         '#5E5CE6',
+  'Other':         '#444',
+}
+
 const SPEND_CATEGORIES = [
   { name: 'Food Delivery', color: '#FF3B30', keywords: ['zomato', 'swiggy', 'dunzo', 'eatfit', 'box8'] },
   { name: 'Groceries',     color: '#FF9500', keywords: ['blinkit', 'zepto', 'bigbasket', 'instamart', 'grofers'] },
@@ -300,9 +322,75 @@ function GmailCard({ gmailStatus, onSync, syncing, navigate }) {
   )
 }
 
+// ─── auto transactions list ───────────────────────────────────────────────────
+
+function AutoTransactionsList({ transactions }) {
+  if (transactions === null) return null // still loading
+
+  const show = transactions.slice(0, 20)
+  const hasMore = transactions.length > 20
+
+  return (
+    <div>
+      <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
+        Auto-Tracked Transactions
+      </p>
+
+      {show.length === 0 ? (
+        <div style={{
+          background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px',
+          padding: '28px 24px', textAlign: 'center',
+        }}>
+          <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>
+            Sync Gmail to see your transactions automatically
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {show.map(tx => {
+            const color = CATEGORY_COLORS[tx.category] ?? '#444'
+            return (
+              <div key={tx.id} style={{
+                background: '#0D0D0D', border: '1px solid #161616',
+                borderRadius: '14px', padding: '14px 16px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
+                      {tx.merchant}
+                    </span>
+                    <span style={{
+                      background: `${color}18`, border: `1px solid ${color}33`,
+                      borderRadius: '20px', padding: '1px 8px',
+                      color, fontSize: '10px', fontWeight: 700, flexShrink: 0,
+                    }}>{tx.category}</span>
+                  </div>
+                  <span style={{ color: '#333', fontSize: '11px' }}>{timeAgo(tx.date)}</span>
+                </div>
+                <span style={{
+                  fontSize: '14px', fontWeight: 800, flexShrink: 0,
+                  color: tx.type === 'credit' ? '#30D158' : '#FF3B30',
+                }}>
+                  {tx.type === 'credit' ? '+' : '−'}₹{tx.amount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            )
+          })}
+          {hasMore && (
+            <p style={{ color: '#555', fontSize: '12px', fontWeight: 600, textAlign: 'center', margin: '8px 0 0', cursor: 'default' }}>
+              + more transactions from this month
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── tab views ────────────────────────────────────────────────────────────────
 
-function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmailStatus, onGmailSync, syncing }) {
+function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmailStatus, onGmailSync, syncing, autoTxns }) {
   const latestRoast = roasts[0] ?? null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -318,6 +406,9 @@ function OverviewTab({ roasts, loading, stats, zomato, navigate, isMobile, gmail
 
       {/* Gmail Connection Card */}
       <GmailCard gmailStatus={gmailStatus} onSync={onGmailSync} syncing={syncing} navigate={navigate} />
+
+      {/* Auto-tracked Transactions */}
+      {gmailStatus?.connected && <AutoTransactionsList transactions={autoTxns} />}
 
       {/* Spending Breakdown */}
       <SpendingBreakdown latestRoast={latestRoast} />
@@ -695,10 +786,11 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const isMobile = useMobile()
 
-  const [roasts, setRoasts]         = useState(null)
-  const [tab, setTab]               = useState('overview')
+  const [roasts, setRoasts]           = useState(null)
+  const [tab, setTab]                 = useState('overview')
   const [gmailStatus, setGmailStatus] = useState(null)
-  const [syncing, setSyncing]       = useState(false)
+  const [syncing, setSyncing]         = useState(false)
+  const [autoTxns, setAutoTxns]       = useState(null)
 
   useEffect(() => {
     if (!user) return
@@ -727,6 +819,39 @@ export default function Dashboard() {
       })
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function loadAutoTxns(uid) {
+    const { data } = await supabase
+      .from('auto_transactions')
+      .select('id, merchant, category, amount, type, date')
+      .eq('user_id', uid)
+      .order('date', { ascending: false })
+      .limit(21)
+    setAutoTxns(data ?? [])
+  }
+
+  useEffect(() => {
+    if (!user) return
+    loadAutoTxns(user.id)
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-sync silently on mount when Gmail is connected
+  useEffect(() => {
+    if (!user || !profile?.gmail_connected) return
+    fetch('/api/gmail-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          setGmailStatus(prev => prev ? { ...prev, lastSyncedAt: new Date().toISOString(), txCount: data.count ?? prev.txCount } : prev)
+          loadAutoTxns(user.id)
+        }
+      })
+      .catch(() => {})
+  }, [user?.id, profile?.gmail_connected]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleGmailSync() {
     if (!user || syncing) return
     setSyncing(true)
@@ -741,8 +866,9 @@ export default function Dashboard() {
         setGmailStatus(prev => ({
           ...prev,
           lastSyncedAt: new Date().toISOString(),
-          txCount: (prev?.txCount ?? 0) + (data.count ?? 0),
+          txCount: data.count ?? prev?.txCount,
         }))
+        await loadAutoTxns(user.id)
       }
     } finally {
       setSyncing(false)
@@ -841,7 +967,7 @@ export default function Dashboard() {
         </div>
 
         {tab === 'overview' && (
-          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} gmailStatus={gmailStatus} onGmailSync={handleGmailSync} syncing={syncing} />
+          <OverviewTab roasts={roasts ?? []} loading={loading} stats={STATS} zomato={zomato} navigate={navigate} isMobile={isMobile} gmailStatus={gmailStatus} onGmailSync={handleGmailSync} syncing={syncing} autoTxns={autoTxns} />
         )}
         {tab === 'challenges' && (
           <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />

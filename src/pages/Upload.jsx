@@ -24,6 +24,30 @@ Example:
 
 Any format works — the AI will figure it out.`
 
+function formatAutoTxns(transactions) {
+  const byCategory = {}
+  for (const tx of transactions) {
+    if (tx.type !== 'debit') continue
+    const cat = tx.category ?? 'Other'
+    if (!byCategory[cat]) byCategory[cat] = {}
+    const m = tx.merchant ?? 'Unknown'
+    byCategory[cat][m] = (byCategory[cat][m] ?? 0) + tx.amount
+  }
+  const sorted = Object.entries(byCategory).sort(
+    (a, b) => Object.values(b[1]).reduce((s, v) => s + v, 0) - Object.values(a[1]).reduce((s, v) => s + v, 0)
+  )
+  const lines = ['[Auto-tracked from Gmail — last 30 days]', '']
+  for (const [cat, merchants] of sorted) {
+    const total = Object.values(merchants).reduce((s, v) => s + v, 0)
+    lines.push(`${cat}: ₹${total.toLocaleString('en-IN')}`)
+    for (const [m, amt] of Object.entries(merchants).sort((a, b) => b[1] - a[1])) {
+      lines.push(`  ${m}: ₹${amt.toLocaleString('en-IN')}`)
+    }
+    lines.push('')
+  }
+  return lines.join('\n').trim()
+}
+
 export default function Upload() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -36,6 +60,23 @@ export default function Upload() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const [error, setError] = useState('')
+  const [autoTxData, setAutoTxData] = useState(null) // null=loading, false=none, {count,text}=found
+
+  useEffect(() => {
+    if (!user) return
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    supabase
+      .from('auto_transactions')
+      .select('merchant, category, amount, type')
+      .eq('user_id', user.id)
+      .gte('date', since)
+      .then(({ data }) => {
+        if (!data?.length) { setAutoTxData(false); return }
+        const formatted = formatAutoTxns(data)
+        setAutoTxData({ count: data.length, text: formatted })
+        setText(prev => prev === '' ? formatted : prev)
+      })
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isLoading) return
@@ -248,6 +289,20 @@ export default function Upload() {
             </div>
 
             <div style={{ padding: '24px' }}>
+              {/* Auto-tracked banner */}
+              {tab === 'paste' && autoTxData && (
+                <div style={{
+                  background: 'rgba(48,209,88,0.06)', border: '1px solid rgba(48,209,88,0.2)',
+                  borderRadius: '10px', padding: '10px 14px', marginBottom: '14px',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                }}>
+                  <span style={{ fontSize: '13px' }}>✅</span>
+                  <p style={{ color: '#30D158', fontSize: '12px', fontWeight: 600, margin: 0 }}>
+                    We found {autoTxData.count} auto-tracked transactions. Your roast will use this data + anything you add below.
+                  </p>
+                </div>
+              )}
+
               {/* Paste tab */}
               {tab === 'paste' && (
                 <textarea
