@@ -567,7 +567,10 @@ function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing,
     const raw = getDate(tx)
     if (!raw) return false
     const dt = new Date(raw)
-    return !isNaN(dt) && dt >= monthStart && dt <= now
+    if (isNaN(dt)) return false
+    // Use month/year equality so YYYY-MM-DD strings (UTC midnight) don't fail
+    // the <= now check for users in UTC+ timezones where today's UTC midnight > local now
+    return dt.getUTCFullYear() === now.getFullYear() && dt.getUTCMonth() === now.getMonth()
   }
   const thisMonth = txns.filter(isThisMonth)
 
@@ -798,9 +801,9 @@ export default function Dashboard() {
   async function loadAutoTxns(uid) {
     const { data } = await supabase
       .from('auto_transactions')
-      .select('id, merchant, category, amount, type, date')
+      .select('id, merchant, category, amount, type, date, created_at')
       .eq('user_id', uid)
-      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(300)
     setAutoTxns(data ?? [])
   }
@@ -808,6 +811,23 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return
     loadAutoTxns(user.id)
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Raw debug: log first 5 records with all fields to diagnose type/date issues
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('auto_transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .limit(5)
+      .then(({ data, error }) => {
+        console.log('[VRDIKT] raw tx debug — count:', data?.length ?? 0,
+          '| error:', error?.message ?? null,
+          '| first record:', JSON.stringify(data?.[0] ?? null),
+          '| unique types:', [...new Set((data ?? []).map(t => t.type))].join(','),
+          '| unique date formats:', [...new Set((data ?? []).map(t => typeof t.date + ':' + t.date))].slice(0, 3).join(' | '))
+      })
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Streak consequence logic

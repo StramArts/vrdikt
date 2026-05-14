@@ -126,12 +126,12 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
             onClick={() => navigate('/profile')}
             title="Profile"
             style={{
-              width: '32px', height: '32px', borderRadius: '50%',
+              width: '36px', height: '36px', borderRadius: '50%',
               background: '#0A0A0A', border: '1px solid #F5C518',
-              color: '#F5C518', fontSize: '13px', fontWeight: 800,
+              color: '#F5C518', fontSize: '20px', fontWeight: 800,
               cursor: 'pointer', fontFamily: 'Inter, sans-serif',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, letterSpacing: 0,
+              flexShrink: 0, letterSpacing: 0, lineHeight: 1,
               transition: 'background 0.15s',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,197,24,0.1)' }}
