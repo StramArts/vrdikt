@@ -560,22 +560,30 @@ function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing,
 
   const txns = transactions ?? []
   const now = new Date()
-  const isThisMonth = (d) => {
-    if (!d) return false
-    const dt = new Date(d)
-    return dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  const getDate = (tx) => tx.date ?? tx.created_at
+  const isThisMonth = (tx) => {
+    const raw = getDate(tx)
+    if (!raw) return false
+    const dt = new Date(raw)
+    return !isNaN(dt) && dt >= monthStart && dt <= now
   }
-  const thisMonth = txns.filter(tx => isThisMonth(tx.date))
+  const thisMonth = txns.filter(isThisMonth)
+
   if (txns.length > 0) {
-    const s = txns[0]
     console.log('[VRDIKT] tx debug — total:', txns.length, 'thisMonth:', thisMonth.length,
-      '| sample.date:', s?.date, '| sample.type:', s?.type, '| sample.amount:', s?.amount,
-      '| parsed date valid:', s?.date ? !isNaN(new Date(s.date)) : false,
+      '| first 3:', JSON.stringify(txns.slice(0, 3)),
       '| types seen:', [...new Set(txns.map(t => t.type))].join(','))
   }
-  const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + (Number(t.amount) || 0), 0)
-  const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + (Number(t.amount) || 0), 0)
+
+  const normalizeType = (t) => (t.type ?? '').toLowerCase()
+  const totalDebit  = thisMonth.filter(t => normalizeType(t).includes('debit')).reduce((s, t) => s + (Number(t.amount) || 0), 0)
+  const totalCredit = thisMonth.filter(t => normalizeType(t).includes('credit')).reduce((s, t) => s + (Number(t.amount) || 0), 0)
   const net         = totalCredit - totalDebit
+
+  const suspectRLS  = txns.length === 0 && (gmailStatus?.txCount ?? 0) > 0
+  const suspectType = txns.length > 0 && thisMonth.length > 0 && totalDebit === 0 && totalCredit === 0
 
   const categories = [...new Set(txns.map(t => t.category).filter(Boolean))].sort()
 
@@ -623,6 +631,11 @@ function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing,
           </div>
         ))}
       </div>
+      {suspectType && (
+        <p style={{ color: '#FF9500', fontSize: '11px', margin: '-12px 0 0', fontWeight: 600 }}>
+          ⚠ Transactions loaded but type values don't match — check console for raw data.
+        </p>
+      )}
 
       {/* Compact filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
@@ -648,7 +661,9 @@ function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing,
         <p style={{ color: '#333', fontSize: '13px', textAlign: 'center', padding: '32px 0' }}>Loading…</p>
       ) : filtered.length === 0 ? (
         <p style={{ color: '#2A2A2A', fontSize: '13px', textAlign: 'center', padding: '32px 0' }}>
-          {txns.length === 0 ? 'Sync Gmail to import transactions.' : 'No transactions match the filters.'}
+          {txns.length === 0
+            ? suspectRLS ? 'Transactions exist but couldn\'t be loaded — try signing out and back in.' : 'Sync Gmail to import transactions.'
+            : 'No transactions match the filters.'}
         </p>
       ) : (
         <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '16px', overflow: 'hidden' }}>

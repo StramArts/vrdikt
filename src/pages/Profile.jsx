@@ -29,6 +29,7 @@ export default function Profile() {
   const [roasts, setRoasts]             = useState(null)
   const [gmailConn, setGmailConn]       = useState(false)
   const [coupleLinked, setCoupleLinked] = useState(false)
+  const [fullName, setFullName]         = useState(null)
 
   useEffect(() => {
     if (!user) return
@@ -51,6 +52,12 @@ export default function Profile() {
       .eq('status', 'active')
       .maybeSingle()
       .then(({ data }) => setCoupleLinked(!!data))
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => { if (data?.full_name) setFullName(data.full_name) })
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSignOut() {
@@ -58,14 +65,14 @@ export default function Profile() {
     navigate('/', { replace: true })
   }
 
+  const displayName = fullName || profile?.full_name || (user?.email ? user.email.split('@')[0] : '—')
+  const memberSince = user?.created_at ? formatDate(user.created_at) : '—'
+
   const loading     = roasts === null
   const latestRoast = roasts?.[0] ?? null
   const scores      = (roasts ?? []).map(r => r.score).filter(s => typeof s === 'number')
   const bestScore   = scores.length ? Math.max(...scores) : null
   const worstScore  = scores.length ? Math.min(...scores) : null
-  const memberSince = roasts?.length
-    ? formatDate(roasts[roasts.length - 1].created_at)
-    : '—'
   const xpData      = calculateXP(roasts ?? [])
   const maxStreak   = calcMaxStreak(roasts ?? [])
   const streak7     = maxStreak >= 7 || !!localStorage.getItem('streak7Shown')
@@ -100,17 +107,18 @@ export default function Profile() {
         display: 'flex', flexDirection: 'column', gap: '24px',
       }}>
 
-        {/* Header */}
-        <div>
-          <p style={{ color: '#1E1E1E', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>
-            Your Record
-          </p>
-          <h1 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1 }}>
-            Profile
+        {/* Header: name, email, member since */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 32px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1, color: '#F0F0F0' }}>
+            {displayName}
           </h1>
+          {user?.email && (
+            <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>{user.email}</p>
+          )}
+          <p style={{ color: '#222', fontSize: '11px', margin: 0 }}>Member since {memberSince}</p>
         </div>
 
-        {/* Section 1: Identity card */}
+        {/* Section 1: Spending personality */}
         <div style={{
           background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.25)',
           borderRadius: '24px', padding: '28px 24px',
