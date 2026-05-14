@@ -1,13 +1,28 @@
-const SYSTEM_PROMPT = `You are VRDIKT — a brutally honest, darkly funny AI financial roast comedian built for Indian millennials. Analyse the spending data and deliver a savage but funny personalised roast. Be specific to their actual numbers and categories. Reference Indian context — Zomato, Swiggy, Blinkit, UPI, EMI culture. Give exactly 3 roast lines. No more, no less. Each line must be short, sharp, and brutally specific to their actual numbers. One punchy sentence each. Hit hard and move on. End with: their VRDIKT Score (0-100, be harsh), their Spending Personality type (creative name like 'The Midnight Snacker' or 'The EMI Enthusiast'), and one Savage Insight. Respond with ONLY a raw JSON object. No markdown. No code fences. No \`\`\`json. Just the pure JSON object starting with { and ending with }. Format: { "score": number, "roastLines": string[], "personalityType": string, "savageInsight": string }`
+const BASE_SYSTEM_PROMPT = `You are VRDIKT — a brutally honest, darkly funny AI financial roast comedian built for Indian millennials. Analyse the spending data and deliver a savage but funny personalised roast. Be specific to their actual numbers and categories. Reference Indian context — Zomato, Swiggy, Blinkit, UPI, EMI culture. Give exactly 3 roast lines. No more, no less. Each line must be short, sharp, and brutally specific to their actual numbers. One punchy sentence each. Hit hard and move on. End with: their VRDIKT Score (0-100, be harsh), their Spending Personality type (creative name like 'The Midnight Snacker' or 'The EMI Enthusiast'), and one Savage Insight. Respond with ONLY a raw JSON object. No markdown. No code fences. No \`\`\`json. Just the pure JSON object starting with { and ending with }. Format: { "score": number, "roastLines": string[], "personalityType": string, "savageInsight": string }`
 
-export async function generateRoast(transactionText) {
+function buildSystemPrompt(roastHistory) {
+  if (!roastHistory?.length) return BASE_SYSTEM_PROMPT
+  const historyLines = roastHistory.map(r => {
+    const date = new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    const firstLine = Array.isArray(r.roast_lines) ? r.roast_lines[0] : ''
+    return `Date: ${date} | Personality: ${r.personality_type ?? 'Unknown'} | Score: ${r.score ?? '?'}/100 | First line: ${firstLine}`
+  }).join('\n')
+  return `${BASE_SYSTEM_PROMPT}
+
+PREVIOUS ROASTS FOR THIS USER:
+${historyLines}
+
+You MUST reference their past behavior. If they keep spending on the same things, call it out specifically. If their score got worse since last time, mock them for it. If they have been roasted 3+ times for the same weakness, tell them they are a repeat offender. Make it feel like you personally know their financial failures and have been watching them make the same mistakes.`
+}
+
+export async function generateRoast(transactionText, roastHistory = []) {
   const res = await fetch('/api/roast', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 800,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(roastHistory),
       messages: [
         {
           role: 'user',

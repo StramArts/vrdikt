@@ -33,9 +33,9 @@ const TIERS = [
   {
     id: 'couple',
     name: 'COUPLE',
-    price: '$2.99',
+    price: '₹99',
     period: '/month per person',
-    subtext: 'Both partners activate for $2.99 each. Less than a chai date.',
+    subtext: 'Less than one Zomato order a month.',
     popular: false,
     cta: 'Coming Soon',
     ctaLink: null,
@@ -55,8 +55,9 @@ const TIERS = [
   {
     id: 'pro',
     name: 'PRO',
-    price: '$4.99',
+    price: '₹199',
     period: '/month',
+    yearlyNote: 'or ₹1,999/year — save 2 months',
     popular: true,
     cta: 'Coming Soon',
     ctaLink: null,
@@ -70,6 +71,9 @@ const TIERS = [
       'Monthly Report Card',
       'Spending Personality deep dive',
       'Morning Burn notification',
+      'Gmail automatic tracking',
+      'AI memory — roasts that remember your history',
+      'Streak consequences and milestones',
       'Merchant categorisation',
       'Group Trip Tracker',
       'Couple Mode',
@@ -166,6 +170,11 @@ export default function Pricing() {
               {tier.subtext && (
                 <p style={{ color: '#333', fontSize: '11px', margin: '8px 0 0', lineHeight: 1.4 }}>
                   {tier.subtext}
+                </p>
+              )}
+              {tier.yearlyNote && (
+                <p style={{ color: '#444', fontSize: '11px', margin: '6px 0 0', lineHeight: 1.4 }}>
+                  {tier.yearlyNote}
                 </p>
               )}
             </div>

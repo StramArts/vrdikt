@@ -144,7 +144,17 @@ export default function Upload() {
     setLoadingMsgIdx(0)
 
     try {
-      const rawRoast = await generateRoast(transactionText)
+      let roastHistory = []
+      if (user) {
+        const { data: history } = await supabase
+          .from('roasts')
+          .select('roast_lines, personality_type, score, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3)
+        roastHistory = history ?? []
+      }
+      const rawRoast = await generateRoast(transactionText, roastHistory)
       const { roastLines, personalityType, score, savageInsight } = parseRoast(rawRoast)
 
       if (user) {

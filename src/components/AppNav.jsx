@@ -74,6 +74,7 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
   const loggedInMenu = [
     { label: 'Dashboard', onClick: () => navigate('/dashboard') },
     { label: 'Trips',     onClick: () => navigate('/trips') },
+    { label: 'Profile',   onClick: () => navigate('/profile') },
     { label: 'Pricing',   onClick: () => navigate('/pricing') },
     ...(onSignOut ? [{ label: 'Sign out', onClick: onSignOut, danger: true }] : []),
   ]
@@ -112,6 +113,7 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
         {!isMobile && loggedIn && (
           <>
             <button onClick={() => navigate('/trips')}   style={GHOST}>Trips</button>
+            <button onClick={() => navigate('/profile')} style={GHOST}>Profile</button>
             <button onClick={() => navigate('/pricing')} style={GHOST}>Pricing</button>
           </>
         )}

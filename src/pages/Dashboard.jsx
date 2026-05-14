@@ -26,6 +26,15 @@ function calcStreak(roasts) {
   return n
 }
 
+function calcPrevStreak(roasts) {
+  if (!roasts?.length) return 0
+  const days = new Set(roasts.map(r => new Date(r.created_at).toDateString()))
+  let n = 0
+  const d = new Date(roasts[0].created_at)
+  while (days.has(d.toDateString())) { n++; d.setDate(d.getDate() - 1) }
+  return n
+}
+
 function timeAgo(ts) {
   const sec = Math.floor((Date.now() - new Date(ts)) / 1000)
   if (sec < 60)   return 'just now'
@@ -46,6 +55,90 @@ const CATEGORY_COLORS = {
   'Health':        '#30D158',
   'Bills':         '#5E5CE6',
   'Other':         '#444',
+}
+
+// ─── STREAK OVERLAYS ─────────────────────────────────────────────────────────
+
+function StreakOverlay({ type, data, onClose, navigate }) {
+  const overlay = {
+    position: 'fixed', inset: 0, zIndex: 1000, background: '#0A0A0A',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    padding: '40px 24px', textAlign: 'center',
+  }
+  const badge = {
+    background: 'rgba(245,197,24,0.08)', border: '1px solid rgba(245,197,24,0.25)',
+    borderRadius: '16px', padding: '16px 28px', marginBottom: '36px',
+  }
+
+  if (type === 'broken') return (
+    <div style={overlay}>
+      <p style={{ color: '#FF3B30', fontSize: '11px', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 20px' }}>STREAK OVER</p>
+      <h1 style={{ color: '#FF3B30', fontSize: 'clamp(40px, 8vw, 72px)', fontWeight: 900, letterSpacing: '-0.04em', margin: '0 0 20px', lineHeight: 1 }}>
+        STREAK BROKEN.
+      </h1>
+      <p style={{ color: '#888', fontSize: '16px', maxWidth: 420, margin: '0 0 36px', lineHeight: 1.6 }}>
+        Your {data.prevStreak}-day streak is gone. Every day you don't track is a day your money goes wherever it wants.
+      </p>
+      <button
+        onClick={() => navigate('/upload')}
+        style={{ background: '#F5C518', border: 'none', borderRadius: '12px', padding: '15px 32px', color: '#0A0A0A', fontSize: '15px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Inter, sans-serif', marginBottom: '20px' }}
+      >
+        Get Roasted Now
+      </button>
+      <button
+        onClick={onClose}
+        style={{ background: 'transparent', border: 'none', color: '#333', fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+      >
+        Running from your finances doesn't make them go away.
+      </button>
+    </div>
+  )
+
+  if (type === '7') return (
+    <div style={overlay}>
+      <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 20px' }}>MILESTONE</p>
+      <h1 style={{ color: '#F5C518', fontSize: 'clamp(36px, 7vw, 64px)', fontWeight: 900, letterSpacing: '-0.04em', margin: '0 0 20px', lineHeight: 1.1 }}>
+        7 DAYS STRAIGHT.
+      </h1>
+      <p style={{ color: '#888', fontSize: '16px', maxWidth: 400, margin: '0 0 28px', lineHeight: 1.6 }}>
+        Most people quit by day 3. You're still here.
+      </p>
+      <div style={badge}>
+        <p style={{ color: '#F5C518', fontSize: '14px', fontWeight: 800, margin: '0 0 4px', letterSpacing: '0.08em' }}>WEEK WARRIOR</p>
+        <p style={{ color: '#F5C518', fontSize: '13px', fontWeight: 700, margin: 0 }}>+75 XP unlocked</p>
+      </div>
+      <button
+        onClick={onClose}
+        style={{ background: '#F5C518', border: 'none', borderRadius: '12px', padding: '15px 32px', color: '#0A0A0A', fontSize: '15px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+      >
+        Keep Going
+      </button>
+    </div>
+  )
+
+  if (type === '30') return (
+    <div style={overlay}>
+      <p style={{ color: '#F5C518', fontSize: '11px', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 20px' }}>MILESTONE</p>
+      <h1 style={{ color: '#F5C518', fontSize: 'clamp(28px, 5vw, 50px)', fontWeight: 900, letterSpacing: '-0.04em', margin: '0 0 20px', lineHeight: 1.1 }}>
+        30 DAYS.<br />You might actually be changing.
+      </h1>
+      <p style={{ color: '#888', fontSize: '16px', maxWidth: 420, margin: '0 0 28px', lineHeight: 1.6 }}>
+        A full month of tracking. That's more financial discipline than most people manage all year.
+      </p>
+      <div style={badge}>
+        <p style={{ color: '#F5C518', fontSize: '14px', fontWeight: 800, margin: '0 0 4px', letterSpacing: '0.04em' }}>OBSESSED (IN A GOOD WAY)</p>
+        <p style={{ color: '#F5C518', fontSize: '13px', fontWeight: 700, margin: 0 }}>+200 XP unlocked</p>
+      </div>
+      <button
+        onClick={() => { onClose(); navigate('/profile') }}
+        style={{ background: '#F5C518', border: 'none', borderRadius: '12px', padding: '15px 32px', color: '#0A0A0A', fontSize: '15px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+      >
+        View Your Journey
+      </button>
+    </div>
+  )
+
+  return null
 }
 
 // ─── OVERVIEW TAB ─────────────────────────────────────────────────────────────
@@ -467,8 +560,9 @@ function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing,
 
   const txns = transactions ?? []
   const now = new Date()
-  const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const thisMonth   = txns.filter(tx => tx.date >= monthStart)
+  const isThisMonth = (d) => { const dt = new Date(d); return dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() }
+  const thisMonth   = txns.filter(tx => isThisMonth(tx.date))
+  console.log('[VRDIKT] txns total:', txns.length, 'this month:', thisMonth.length, 'sample:', txns[0])
   const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0)
   const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
   const net         = totalCredit - totalDebit
@@ -641,11 +735,13 @@ export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
 
-  const [roasts, setRoasts]           = useState(null)
-  const [tab, setTab]                 = useState('overview')
-  const [gmailStatus, setGmailStatus] = useState(null)
-  const [syncing, setSyncing]         = useState(false)
-  const [autoTxns, setAutoTxns]       = useState(null)
+  const [roasts, setRoasts]                   = useState(null)
+  const [tab, setTab]                         = useState('overview')
+  const [gmailStatus, setGmailStatus]         = useState(null)
+  const [syncing, setSyncing]                 = useState(false)
+  const [autoTxns, setAutoTxns]               = useState(null)
+  const [streakOverlay, setStreakOverlay]     = useState(null)
+  const [streakOverlayData, setStreakOverlayData] = useState({})
 
   useEffect(() => {
     if (!user) return
@@ -688,6 +784,36 @@ export default function Dashboard() {
     if (!user) return
     loadAutoTxns(user.id)
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Streak consequence logic
+  useEffect(() => {
+    if (!roasts || roasts.length === 0) return
+    const streak = calcStreak(roasts)
+
+    if (streak >= 30 && !localStorage.getItem('streak30Shown')) {
+      localStorage.setItem('streak30Shown', 'true')
+      setStreakOverlay('30')
+      return
+    }
+    if (streak >= 7 && !localStorage.getItem('streak7Shown')) {
+      localStorage.setItem('streak7Shown', 'true')
+      setStreakOverlay('7')
+      return
+    }
+
+    const lastRoast = new Date(roasts[0].created_at)
+    const hoursAgo  = (Date.now() - lastRoast) / 3600000
+    if (hoursAgo > 48) {
+      const prevStreak     = calcPrevStreak(roasts)
+      const lastRoastKey   = lastRoast.toDateString()
+      const alreadyShown   = localStorage.getItem('lastStreakBrokenShown')
+      if (prevStreak >= 3 && alreadyShown !== lastRoastKey) {
+        localStorage.setItem('lastStreakBrokenShown', lastRoastKey)
+        setStreakOverlayData({ prevStreak })
+        setStreakOverlay('broken')
+      }
+    }
+  }, [roasts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user || !profile?.gmail_connected) return
@@ -741,6 +867,15 @@ export default function Dashboard() {
   ]
 
   return (
+    <>
+    {streakOverlay && (
+      <StreakOverlay
+        type={streakOverlay}
+        data={streakOverlayData}
+        onClose={() => setStreakOverlay(null)}
+        navigate={navigate}
+      />
+    )}
     <div style={{
       minHeight: '100svh', background: '#0A0A0A',
       fontFamily: 'Inter, sans-serif', color: '#F0F0F0',
@@ -817,5 +952,6 @@ export default function Dashboard() {
         {tab === 'couple' && <CoupleMode />}
       </div>
     </div>
+    </>
   )
 }
