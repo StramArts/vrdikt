@@ -560,11 +560,21 @@ function TransactionsTab({ transactions, gmailStatus, navigate, onSync, syncing,
 
   const txns = transactions ?? []
   const now = new Date()
-  const isThisMonth = (d) => { const dt = new Date(d); return dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() }
-  const thisMonth   = txns.filter(tx => isThisMonth(tx.date))
-  console.log('[VRDIKT] txns total:', txns.length, 'this month:', thisMonth.length, 'sample:', txns[0])
-  const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0)
-  const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
+  const isThisMonth = (d) => {
+    if (!d) return false
+    const dt = new Date(d)
+    return dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth()
+  }
+  const thisMonth = txns.filter(tx => isThisMonth(tx.date))
+  if (txns.length > 0) {
+    const s = txns[0]
+    console.log('[VRDIKT] tx debug — total:', txns.length, 'thisMonth:', thisMonth.length,
+      '| sample.date:', s?.date, '| sample.type:', s?.type, '| sample.amount:', s?.amount,
+      '| parsed date valid:', s?.date ? !isNaN(new Date(s.date)) : false,
+      '| types seen:', [...new Set(txns.map(t => t.type))].join(','))
+  }
+  const totalDebit  = thisMonth.filter(t => t.type === 'debit').reduce((s, t) => s + (Number(t.amount) || 0), 0)
+  const totalCredit = thisMonth.filter(t => t.type === 'credit').reduce((s, t) => s + (Number(t.amount) || 0), 0)
   const net         = totalCredit - totalDebit
 
   const categories = [...new Set(txns.map(t => t.category).filter(Boolean))].sort()

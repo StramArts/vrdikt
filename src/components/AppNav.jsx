@@ -113,7 +113,6 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
         {!isMobile && loggedIn && (
           <>
             <button onClick={() => navigate('/trips')}   style={GHOST}>Trips</button>
-            <button onClick={() => navigate('/profile')} style={GHOST}>Profile</button>
             <button onClick={() => navigate('/pricing')} style={GHOST}>Pricing</button>
           </>
         )}
@@ -121,9 +120,25 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
           <button onClick={() => navigate('/pricing')} style={GHOST}>Pricing</button>
         )}
 
-        {/* Desktop: email badge */}
-        {!isMobile && user?.email && (
-          <span style={{ color: '#252525', fontSize: '13px' }}>{user.email}</span>
+        {/* Avatar button — desktop, logged in */}
+        {!isMobile && loggedIn && user?.email && (
+          <button
+            onClick={() => navigate('/profile')}
+            title="Profile"
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: '#0A0A0A', border: '1px solid #F5C518',
+              color: '#F5C518', fontSize: '13px', fontWeight: 800,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, letterSpacing: 0,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,197,24,0.1)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A' }}
+          >
+            {user.email[0].toUpperCase()}
+          </button>
         )}
 
         {/* Desktop: sign out */}
