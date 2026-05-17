@@ -167,52 +167,6 @@ function OverviewTab({ roasts, loading, gmailStatus, autoTxns, navigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-      {/* Hero: Score + Streak */}
-      <div style={{
-        background: '#0D0D0D', border: '1px solid #161616',
-        borderRadius: '24px', padding: '32px 28px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at bottom right, rgba(255,59,48,0.04) 0%, transparent 60%)',
-          pointerEvents: 'none',
-        }} />
-        <div>
-          <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
-            VRDIKT Score
-          </p>
-          {loading ? (
-            <p style={{ color: '#1E1E1E', fontSize: '64px', fontWeight: 900, margin: 0, letterSpacing: '-0.04em', lineHeight: 1 }}>—</p>
-          ) : latestScore !== null ? (
-            <p style={{ margin: 0, lineHeight: 1 }}>
-              <span style={{ color: scoreColor(latestScore), fontSize: '72px', fontWeight: 900, letterSpacing: '-0.04em' }}>
-                {latestScore}
-              </span>
-              <span style={{ color: '#1E1E1E', fontSize: '20px', fontWeight: 700, marginLeft: '4px' }}>/100</span>
-            </p>
-          ) : (
-            <p style={{ color: '#1E1E1E', fontSize: '20px', fontWeight: 700, margin: 0 }}>No roasts yet</p>
-          )}
-          {latestRoast?.personality_type && (
-            <p style={{ color: '#2A2A2A', fontSize: '11px', margin: '10px 0 0', fontWeight: 600 }}>
-              {latestRoast.personality_type}
-            </p>
-          )}
-        </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
-            Streak
-          </p>
-          <p style={{ margin: 0, lineHeight: 1 }}>
-            <span style={{ color: '#F5C518', fontSize: '44px', fontWeight: 900, letterSpacing: '-0.03em' }}>{streak}</span>
-            <span style={{ color: '#F5C518', fontSize: '16px', fontWeight: 700 }}>d</span>
-          </p>
-          {streak > 0 && <p style={{ color: '#333', fontSize: '10px', margin: '6px 0 0' }}>on fire</p>}
-        </div>
-      </div>
-
       {/* 3-stat row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
         {[
@@ -963,6 +917,7 @@ export default function Dashboard() {
         position: 'relative', overflow: 'hidden',
         padding: '52px 24px 36px', display: 'flex', flexDirection: 'column',
         justifyContent: 'flex-end', gap: '6px',
+        borderBottom: '1px solid rgba(255,85,0,0.2)',
       }}>
         {/* Ambient glow */}
         <div style={{
@@ -989,7 +944,7 @@ export default function Dashboard() {
         {/* Score row */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
           <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 900, fontStyle: 'italic',
+            fontFamily: 'var(--font-display)', fontWeight: 900, fontStyle: 'normal',
             fontSize: 72, lineHeight: 1, color: 'var(--text-primary)',
           }}>
             {loading ? '—' : latestScore ?? '—'}
@@ -1075,10 +1030,16 @@ export default function Dashboard() {
               fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
               letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 6px',
             }}>Streak</p>
-            <p style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
-              color: 'var(--text-primary)', margin: 0, lineHeight: 1,
-            }}>{streak}d</p>
+            <p style={{ margin: 0, lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 2 }}>
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
+                color: 'var(--text-primary)',
+              }}>{streak}</span>
+              <span style={{
+                fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 11,
+                color: 'var(--text-muted)', letterSpacing: '0.04em',
+              }}>d</span>
+            </p>
           </div>
         </div>
 
