@@ -937,15 +937,16 @@ export default function Dashboard() {
         <h1 style={{
           fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 34,
           color: 'var(--text-primary)', margin: 0, lineHeight: 1.1,
+          textTransform: 'capitalize',
         }}>
-          {profile?.full_name ?? user?.email?.split('@')[0] ?? 'Hey'}
+          {(profile?.full_name && profile.full_name.trim()) ? profile.full_name : (user?.email?.split('@')[0] ?? 'Hey')}
         </h1>
 
         {/* Score row */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
           <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 900, fontStyle: 'normal',
-            fontSize: 72, lineHeight: 1, color: 'var(--text-primary)',
+            fontSize: '72px', lineHeight: 1, color: 'var(--text-primary)',
           }}>
             {loading ? '—' : latestScore ?? '—'}
           </span>
@@ -1070,7 +1071,7 @@ export default function Dashboard() {
         </div>
 
         {/* Tab pills */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 20px', scrollbarWidth: 'none', marginBottom: 18 }}>
           {TABS.map(({ id, label }) => {
             const active = tab === id
             return (
