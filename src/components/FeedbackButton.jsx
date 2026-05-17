@@ -56,7 +56,7 @@ export default function FeedbackButton() {
       <button
         onClick={openModal}
         style={{
-          position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000,
+          position: 'fixed', bottom: '80px', right: '24px', zIndex: 1000,
           background: 'rgba(10,10,10,0.88)',
           border: '1px solid #C9A227',
           borderRadius: '999px',
