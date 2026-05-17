@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Space+Grotesk:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
@@ -72,6 +73,11 @@
   50%       { opacity: 0.7; transform: scale(0.97); }
 }
 
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.015); }
+}
+
 @keyframes glow-gold {
   0%, 100% { text-shadow: 0 0 20px rgba(245,197,24,0.4); }
   50%       { text-shadow: 0 0 48px rgba(245,197,24,0.9), 0 0 80px rgba(245,197,24,0.3); }
@@ -82,6 +88,21 @@
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
   --sar: env(safe-area-inset-right);
+
+  --bg-base: #050505;
+  --bg-hero: #060606;
+  --bg-content: #0F0F0F;
+  --bg-card: #141414;
+  --border: rgba(255,255,255,0.07);
+  --border-hot: rgba(255,85,0,0.25);
+  --text-primary: #F0F0F0;
+  --text-muted: rgba(255,255,255,0.38);
+  --orange: #FF5500;
+  --red: #FF1040;
+  --gold: #FFD000;
+  --font-display: 'Playfair Display', serif;
+  --font-ui: 'Space Grotesk', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 
 * {

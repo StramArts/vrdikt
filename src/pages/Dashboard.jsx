@@ -911,6 +911,35 @@ export default function Dashboard() {
     { id: 'couple',       label: 'COUPLE' },
   ]
 
+  const latestRoast  = roasts?.[0] ?? null
+  const latestScore  = latestRoast?.score ?? null
+  const streak       = roasts ? calcStreak(roasts) : 0
+  const tierLabel    = latestRoast?.personality_type ?? (latestScore == null ? 'NOT ROASTED YET' : 'VRDIKT MEMBER')
+
+  // Debited this month from auto transactions
+  const now = new Date()
+  const isThisMonth = (tx) => {
+    const raw = tx.date ?? tx.created_at
+    if (!raw) return false
+    const dt = new Date(raw)
+    return !isNaN(dt) && dt.getUTCFullYear() === now.getFullYear() && dt.getUTCMonth() === now.getMonth()
+  }
+  const spentThisMonth = (autoTxns ?? [])
+    .filter(tx => isThisMonth(tx) && (tx.type ?? '').toLowerCase().includes('debit'))
+    .reduce((s, tx) => s + (Number(tx.amount) || 0), 0)
+
+  // Days until next Sunday
+  const daysToSunday = (7 - now.getDay()) % 7 || 7
+
+  // Recent 5 transactions for activity list
+  const recentTxns = (autoTxns ?? []).slice(0, 5)
+
+  const CATEGORY_ICONS = {
+    'Food Delivery': '🍕', 'Groceries': '🛒', 'Shopping': '🛍️',
+    'Entertainment': '🎬', 'Transport': '🚗', 'Finance / EMI': '💳',
+    'Dining': '🍽️', 'Health': '💊', 'Bills': '⚡', 'Other': '💸',
+  }
+
   return (
     <>
     {streakOverlay && (
@@ -921,42 +950,166 @@ export default function Dashboard() {
         navigate={navigate}
       />
     )}
+
+    {/* Full-screen column */}
     <div style={{
-      minHeight: '100svh', background: '#0A0A0A',
-      fontFamily: 'Inter, sans-serif', color: '#F0F0F0',
-      display: 'flex', flexDirection: 'column',
+      minHeight: '100svh', background: 'var(--bg-base)',
+      color: 'var(--text-primary)', display: 'flex', flexDirection: 'column',
     }}>
-      <AppNav loggedIn showDashboardBtn={false} user={user} onSignOut={handleSignOut} />
 
+      {/* ── TOP HERO PANEL ── */}
       <div style={{
-        flex: 1, maxWidth: 800, width: '100%',
-        margin: '0 auto', padding: '32px 20px 80px',
-        display: 'flex', flexDirection: 'column', gap: '22px',
+        background: 'var(--bg-hero)', minHeight: '42vh',
+        position: 'relative', overflow: 'hidden',
+        padding: '52px 24px 36px', display: 'flex', flexDirection: 'column',
+        justifyContent: 'flex-end', gap: '6px',
       }}>
+        {/* Ambient glow */}
+        <div style={{
+          position: 'absolute', top: 0, right: 0,
+          width: 300, height: 300,
+          background: 'radial-gradient(circle, rgba(255,85,0,0.14) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
 
-        {/* Compact header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-          <div>
-            <p style={{ color: '#1E1E1E', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>
-              Financial Crime Record
-            </p>
-            <h1 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1 }}>
-              Dashboard
-            </h1>
-          </div>
-          <button
-            onClick={() => navigate('/upload')}
-            style={{
-              background: '#F5C518', border: 'none', borderRadius: '10px',
-              padding: '11px 18px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em',
-              whiteSpace: 'nowrap', boxShadow: '0 0 24px rgba(245,197,24,0.15)', flexShrink: 0,
-            }}
-          >Get Roasted</button>
+        {/* Welcome label */}
+        <p style={{
+          fontFamily: 'var(--font-ui)', fontSize: 11, letterSpacing: '0.10em',
+          color: 'var(--text-muted)', textTransform: 'uppercase', margin: 0,
+        }}>Welcome Back</p>
+
+        {/* User name */}
+        <h1 style={{
+          fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 34,
+          color: 'var(--text-primary)', margin: 0, lineHeight: 1.1,
+        }}>
+          {profile?.full_name ?? user?.email?.split('@')[0] ?? 'Hey'}
+        </h1>
+
+        {/* Score row */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontWeight: 900, fontStyle: 'italic',
+            fontSize: 72, lineHeight: 1, color: 'var(--text-primary)',
+          }}>
+            {loading ? '—' : latestScore ?? '—'}
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 26,
+            color: 'var(--text-muted)',
+          }}>/100</span>
         </div>
 
-        {/* Tab pills — smaller */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {/* Tier label */}
+        <p style={{
+          fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 11,
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: 'var(--orange)', margin: 0,
+        }}>{tierLabel}</p>
+
+        {/* Score progress bar */}
+        <div style={{
+          height: 4, borderRadius: 2, marginTop: 12,
+          background: '#1a1a1a', overflow: 'hidden', position: 'relative',
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${latestScore ?? 0}%`,
+            background: 'linear-gradient(90deg, #FF5500, #FF1040)',
+            boxShadow: '0 0 10px rgba(255,85,0,0.5)',
+            borderRadius: 2,
+            transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
+          }} />
+        </div>
+      </div>
+
+      {/* ── BRIDGE STRIP ── */}
+      <div style={{ margin: '-1px 20px 0', position: 'relative', zIndex: 10 }}>
+        <button
+          onClick={() => navigate('/upload')}
+          style={{
+            width: '100%',
+            background: 'linear-gradient(135deg, #FF5500, #FF1040)',
+            border: 'none', borderRadius: 20, padding: 17,
+            fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14,
+            letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff',
+            boxShadow: '0 0 28px rgba(255,85,0,0.35)',
+            cursor: 'pointer',
+            animation: 'pulse 3s ease-in-out infinite',
+          }}
+        >⚡ GET ROASTED</button>
+      </div>
+
+      {/* ── BOTTOM CONTENT ZONE ── */}
+      <div style={{
+        background: 'var(--bg-content)', flex: 1,
+        overflowY: 'auto', padding: '20px 20px 100px',
+      }}>
+
+        {/* Stat cards row */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+          {/* Spent card */}
+          <div style={{
+            background: 'var(--bg-card)', borderRadius: 16, padding: 14, flex: 1,
+            border: '1px solid var(--border)', borderLeft: '3px solid var(--orange)',
+          }}>
+            <p style={{
+              fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
+              letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 6px',
+            }}>Spent</p>
+            <p style={{
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
+              color: 'var(--text-primary)', margin: 0, lineHeight: 1,
+            }}>
+              {spentThisMonth >= 1000
+                ? `₹${(spentThisMonth / 1000).toFixed(1)}k`
+                : `₹${spentThisMonth}`}
+            </p>
+          </div>
+          {/* Streak card */}
+          <div style={{
+            background: 'var(--bg-card)', borderRadius: 16, padding: 14, flex: 1,
+            border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)',
+          }}>
+            <p style={{
+              fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
+              letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 6px',
+            }}>Streak</p>
+            <p style={{
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
+              color: 'var(--text-primary)', margin: 0, lineHeight: 1,
+            }}>{streak}d</p>
+          </div>
+        </div>
+
+        {/* Sunday Roast countdown */}
+        <div style={{
+          background: 'rgba(255,16,64,0.04)', borderRadius: 16,
+          padding: '14px 18px', marginBottom: 14,
+          border: '1px solid rgba(255,16,64,0.28)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <div>
+            <p style={{
+              fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
+              letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 4px',
+            }}>Sunday Roast</p>
+            <p style={{
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
+              color: 'var(--text-primary)', margin: 0,
+            }}>
+              {daysToSunday === 0 ? 'Today!' : `Drops in ${daysToSunday} day${daysToSunday !== 1 ? 's' : ''}`}
+            </p>
+          </div>
+          <span style={{
+            background: 'rgba(255,16,64,0.12)', border: '1px solid rgba(255,16,64,0.3)',
+            borderRadius: 20, padding: '4px 12px',
+            color: 'var(--red)', fontSize: 11, fontFamily: 'var(--font-ui)',
+          }}>Weekly</span>
+        </div>
+
+        {/* Tab pills */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
           {TABS.map(({ id, label }) => {
             const active = tab === id
             return (
@@ -964,19 +1117,73 @@ export default function Dashboard() {
                 key={id}
                 onClick={() => setTab(id)}
                 style={{
-                  background: active ? '#F5C518' : 'transparent',
-                  border: `1px solid ${active ? '#F5C518' : '#1E1E1E'}`,
-                  borderRadius: '999px', padding: '6px 14px',
-                  color: active ? '#0A0A0A' : '#444',
-                  fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em',
-                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                  transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                  background: active ? 'rgba(255,85,0,0.12)' : 'transparent',
+                  border: `1px solid ${active ? 'rgba(255,85,0,0.4)' : 'var(--border)'}`,
+                  borderRadius: 999, padding: '6px 14px',
+                  color: active ? 'var(--orange)' : 'var(--text-muted)',
+                  fontSize: 10, fontWeight: 600, letterSpacing: '0.1em',
+                  fontFamily: 'var(--font-ui)', textTransform: 'uppercase',
+                  cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >{label}</button>
             )
           })}
         </div>
 
+        {/* Recent Activity — shown on overview tab */}
+        {tab === 'overview' && recentTxns.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>
+                Recent
+              </span>
+              <button
+                onClick={() => setTab('transactions')}
+                style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: 'var(--orange)', fontFamily: 'var(--font-body)', fontSize: 13,
+                  padding: 0,
+                }}
+              >See all →</button>
+            </div>
+            {recentTxns.map((tx, i) => (
+              <div key={tx.id ?? i} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '13px 0',
+                borderBottom: i < recentTxns.length - 1 ? '1px solid var(--border)' : 'none',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 40, height: 40, background: 'var(--bg-card)',
+                    borderRadius: 12, border: '1px solid var(--border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 18, flexShrink: 0,
+                  }}>
+                    {CATEGORY_ICONS[tx.category] ?? '💸'}
+                  </div>
+                  <div>
+                    <p style={{
+                      fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 15,
+                      color: 'var(--text-primary)', margin: 0,
+                    }}>{tx.merchant ?? tx.category ?? 'Transaction'}</p>
+                    <p style={{
+                      fontFamily: 'var(--font-body)', fontSize: 12,
+                      color: 'var(--text-muted)', margin: '2px 0 0',
+                    }}>{timeAgo(tx.date ?? tx.created_at)}</p>
+                  </div>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15,
+                  color: (tx.type ?? '').includes('credit') ? '#30D158' : 'var(--text-primary)',
+                }}>
+                  {(tx.type ?? '').includes('credit') ? '+' : '−'}₹{Number(tx.amount).toLocaleString('en-IN')}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tab content */}
         {tab === 'overview' && (
           <OverviewTab
             roasts={roasts ?? []} loading={loading}
@@ -995,7 +1202,10 @@ export default function Dashboard() {
           <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
         )}
         {tab === 'couple' && <CoupleMode />}
+
       </div>
+
+      <AppNav loggedIn showDashboardBtn={false} user={user} onSignOut={handleSignOut} />
     </div>
     </>
   )
