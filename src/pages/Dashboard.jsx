@@ -861,7 +861,6 @@ export default function Dashboard() {
   const TABS = [
     { id: 'overview',     label: 'OVERVIEW' },
     { id: 'transactions', label: 'TRANSACTIONS' },
-    { id: 'challenges',   label: 'CHALLENGES' },
     { id: 'couple',       label: 'COUPLE' },
   ]
 
@@ -913,7 +912,8 @@ export default function Dashboard() {
 
       {/* ── TOP HERO PANEL ── */}
       <div style={{
-        background: 'var(--bg-hero)', minHeight: '42vh',
+        background: 'linear-gradient(180deg, #0D0D0D 0%, #080808 100%)',
+        minHeight: '42vh',
         position: 'relative', overflow: 'hidden',
         padding: '52px 24px 36px', display: 'flex', flexDirection: 'column',
         justifyContent: 'flex-end', gap: '6px',
@@ -980,7 +980,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── BRIDGE STRIP ── */}
-      <div style={{ margin: '-1px 20px 0', position: 'relative', zIndex: 10 }}>
+      <div style={{ padding: '0 20px', margin: '0', background: '#050505', position: 'relative', zIndex: 10 }}>
         <button
           onClick={() => navigate('/upload')}
           style={{
@@ -998,8 +998,12 @@ export default function Dashboard() {
 
       {/* ── BOTTOM CONTENT ZONE ── */}
       <div style={{
-        background: 'var(--bg-content)', flex: 1,
-        overflowY: 'auto', padding: '20px 20px 100px',
+        background: '#0A0A0A', flex: 1,
+        overflowY: 'auto', padding: '24px 20px 100px',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: '24px 24px 0 0',
+        marginTop: '-12px',
+        boxShadow: '0 -8px 32px rgba(0,0,0,0.6)',
       }}>
 
         {/* Stat cards row */}
@@ -1017,7 +1021,9 @@ export default function Dashboard() {
               fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
               color: 'var(--text-primary)', margin: 0, lineHeight: 1,
             }}>
-              {spentThisMonth >= 1000
+              {spentThisMonth === 0
+                ? '₹—'
+                : spentThisMonth >= 1000
                 ? `₹${(spentThisMonth / 1000).toFixed(1)}k`
                 : `₹${spentThisMonth}`}
             </p>
@@ -1031,16 +1037,26 @@ export default function Dashboard() {
               fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
               letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 6px',
             }}>Streak</p>
-            <p style={{ margin: 0, lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 2 }}>
-              <span style={{
-                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
-                color: 'var(--text-primary)',
-              }}>{streak}</span>
-              <span style={{
-                fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 11,
-                color: 'var(--text-muted)', letterSpacing: '0.04em',
-              }}>d</span>
-            </p>
+            {streak === 0 ? (
+              <p style={{ margin: 0, lineHeight: 1 }}>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
+                  color: 'var(--text-primary)',
+                }}>0 </span>
+                <span style={{ fontSize: 20 }}>🔥</span>
+              </p>
+            ) : (
+              <p style={{ margin: 0, lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
+                  color: 'var(--text-primary)',
+                }}>{streak}</span>
+                <span style={{
+                  fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 11,
+                  color: 'var(--text-muted)', letterSpacing: '0.04em',
+                }}>d</span>
+              </p>
+            )}
           </div>
         </div>
 
