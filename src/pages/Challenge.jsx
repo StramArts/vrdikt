@@ -114,7 +114,7 @@ export default function Challenge() {
       }}>
         <div style={{
           width: '32px', height: '32px',
-          border: '2px solid #1A1A1A', borderTopColor: '#F5C518',
+          border: '2px solid rgba(255,255,255,0.07)', borderTopColor: '#FF5500',
           borderRadius: '50%', animation: 'spin 0.7s linear infinite',
         }} />
       </div>
@@ -133,16 +133,16 @@ export default function Challenge() {
         <h2 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>
           No active challenge
         </h2>
-        <p style={{ color: '#555', fontSize: '14px', margin: 0 }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '14px', margin: 0 }}>
           Complete onboarding to get your first challenge.
         </p>
         <button
           onClick={() => navigate('/dashboard')}
           style={{
-            marginTop: '8px', background: '#F5C518', border: 'none',
+            marginTop: '8px', background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none',
             borderRadius: '12px', padding: '12px 28px',
-            color: '#0A0A0A', fontSize: '14px', fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            color: '#fff', fontSize: '14px', fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
           }}
         >
           Back to Dashboard
@@ -180,7 +180,7 @@ export default function Challenge() {
       {/* Nav */}
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 24px', borderBottom: '1px solid #111',
+        padding: '18px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)',
         position: 'sticky', top: 0, zIndex: 10,
         background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',
       }}>
@@ -188,12 +188,12 @@ export default function Challenge() {
           onClick={() => navigate('/dashboard')}
           style={{
             background: 'transparent', border: 'none',
-            color: '#555', fontSize: '13px', cursor: 'pointer',
-            fontFamily: 'Inter, sans-serif', padding: 0,
+            color: 'rgba(255,255,255,0.38)', fontSize: '13px', cursor: 'pointer',
+            fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', padding: 0,
             transition: 'color 0.2s',
           }}
           onMouseEnter={e => e.currentTarget.style.color = '#F0F0F0'}
-          onMouseLeave={e => e.currentTarget.style.color = '#555'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.38)'}
         >
           ← Dashboard
         </button>
@@ -223,7 +223,7 @@ export default function Challenge() {
           }}>
             Your {monthName} Challenge
           </h1>
-          <p style={{ color: '#F5C518', fontSize: '14px', fontWeight: 500, margin: 0, fontStyle: 'italic' }}>
+          <p style={{ color: '#FF5500', fontSize: '14px', fontWeight: 500, margin: 0, fontStyle: 'italic' }}>
             Can you actually do it this time?
           </p>
         </div>
@@ -232,30 +232,30 @@ export default function Challenge() {
         {isOver && (
           <div style={{
             background: status === 'FAILED'
-              ? 'rgba(255,59,48,0.07)' : 'rgba(48,209,88,0.07)',
-            border: `1px solid ${status === 'FAILED' ? 'rgba(255,59,48,0.3)' : 'rgba(48,209,88,0.3)'}`,
+              ? 'rgba(255,16,64,0.07)' : 'rgba(255,85,0,0.06)',
+            border: `1px solid ${status === 'FAILED' ? 'rgba(255,16,64,0.3)' : 'rgba(255,85,0,0.3)'}`,
             borderRadius: '20px', padding: '28px 24px',
             marginBottom: '20px', textAlign: 'center',
           }}>
             {status !== 'FAILED' ? (
               <>
                 <p style={{ fontSize: '40px', margin: '0 0 12px' }}>🏆</p>
-                <h2 style={{ color: '#30D158', fontSize: '20px', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.03em' }}>
+                <h2 style={{ color: '#FF5500', fontSize: '20px', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.03em' }}>
                   YOU DID IT.
                 </h2>
-                <p style={{ color: '#888', fontSize: '15px', margin: 0 }}>
-                  You saved <span style={{ color: '#30D158', fontWeight: 700 }}>{formatINR(saved)}</span> this month. Genuinely impressed.
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '15px', margin: 0 }}>
+                  You saved <span style={{ color: '#FF5500', fontWeight: 700 }}>{formatINR(saved)}</span> this month. Genuinely impressed.
                 </p>
               </>
             ) : (
               <>
                 <p style={{ fontSize: '40px', margin: '0 0 12px' }}>💀</p>
-                <h2 style={{ color: '#FF3B30', fontSize: '20px', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.03em' }}>
+                <h2 style={{ color: '#FF1040', fontSize: '20px', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.03em' }}>
                   YOU FAILED.
                 </h2>
-                <p style={{ color: '#888', fontSize: '15px', margin: 0, lineHeight: 1.6 }}>
-                  You overspent by <span style={{ color: '#FF3B30', fontWeight: 700 }}>{formatINR(overspent)}</span>. That's approximately{' '}
-                  <span style={{ color: '#FF3B30', fontWeight: 700 }}>{zomatoOrders} unnecessary Zomato orders</span>.
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '15px', margin: 0, lineHeight: 1.6 }}>
+                  You overspent by <span style={{ color: '#FF1040', fontWeight: 700 }}>{formatINR(overspent)}</span>. That's approximately{' '}
+                  <span style={{ color: '#FF1040', fontWeight: 700 }}>{zomatoOrders} unnecessary Zomato orders</span>.
                   {' '}Congratulations on your choices.
                 </p>
               </>
@@ -265,12 +265,13 @@ export default function Challenge() {
 
         {/* ── Main challenge card ── */}
         <div style={{
-          background: '#0D0D0D', border: '1px solid #161616',
+          background: '#141414', border: '1px solid rgba(255,85,0,0.3)',
           borderRadius: '20px', padding: '24px', marginBottom: '16px',
+          boxShadow: '0 0 0 1px rgba(255,85,0,0.06) inset',
         }}>
           {/* Goal + status */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '20px' }}>
-            <p style={{ color: '#C0C0C0', fontSize: '15px', fontWeight: 500, margin: 0, lineHeight: 1.5, flex: 1 }}>
+            <p style={{ color: '#F0F0F0', fontSize: '15px', fontWeight: 500, margin: 0, lineHeight: 1.5, flex: 1 }}>
               {challenge.goal}
             </p>
             <span style={{
@@ -287,11 +288,11 @@ export default function Challenge() {
 
           {/* Progress bar */}
           <div style={{ marginBottom: '10px' }}>
-            <div style={{ background: '#1A1A1A', borderRadius: '6px', height: '10px', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '6px', height: '10px', overflow: 'hidden' }}>
               <div style={{
                 height: '100%',
                 width: `${pct}%`,
-                background: statusColor,
+                background: '#FF5500',
                 borderRadius: '6px',
                 transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
               }} />
@@ -300,20 +301,20 @@ export default function Challenge() {
 
           {/* Amounts */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: statusColor, fontSize: '15px', fontWeight: 700 }}>
+            <span style={{ color: '#FF5500', fontSize: '15px', fontWeight: 700 }}>
               {formatINR(challenge.current_amount)} spent
             </span>
-            <span style={{ color: '#444', fontSize: '13px' }}>
+            <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px' }}>
               of {formatINR(challenge.target_amount)} limit
             </span>
           </div>
 
           {/* Days remaining */}
           {!isOver && (
-            <p style={{ color: '#333', fontSize: '12px', margin: '12px 0 0', borderTop: '1px solid #161616', paddingTop: '12px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: '12px 0 0', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
               {daysLeft === 1 ? '1 day left' : `${daysLeft} days left`} in {monthName}
               {daysLeft <= 5 && daysLeft > 0 && (
-                <span style={{ color: '#FF3B30', marginLeft: '6px' }}>— final stretch</span>
+                <span style={{ color: '#FF1040', marginLeft: '6px' }}>— final stretch</span>
               )}
             </p>
           )}
@@ -322,11 +323,11 @@ export default function Challenge() {
         {/* ── Log transaction ── */}
         {!isOver && (
           <div style={{
-            background: '#0D0D0D', border: '1px solid #161616',
+            background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: '20px', padding: '24px', marginBottom: '16px',
           }}>
             <p style={{
-              color: '#555', fontSize: '11px', letterSpacing: '0.18em',
+              color: 'rgba(255,255,255,0.38)', fontSize: '11px', letterSpacing: '0.18em',
               textTransform: 'uppercase', fontWeight: 600, margin: '0 0 16px',
             }}>
               Log a Transaction
@@ -336,7 +337,7 @@ export default function Challenge() {
               <div style={{ position: 'relative', flex: '0 0 120px' }}>
                 <span style={{
                   position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-                  color: '#555', fontSize: '14px', fontWeight: 600, pointerEvents: 'none',
+                  color: 'rgba(255,255,255,0.38)', fontSize: '14px', fontWeight: 600, pointerEvents: 'none',
                 }}>
                   ₹
                 </span>
@@ -348,14 +349,14 @@ export default function Challenge() {
                   onKeyDown={e => e.key === 'Enter' && addTransaction()}
                   style={{
                     width: '100%', padding: '13px 12px 13px 26px',
-                    background: '#0A0A0A', border: '1px solid #1C1C1C',
+                    background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)',
                     borderRadius: '12px', color: '#F0F0F0',
-                    fontSize: '15px', fontFamily: 'Inter, sans-serif',
+                    fontSize: '15px', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                     outline: 'none', boxSizing: 'border-box',
                     transition: 'border-color 0.15s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#F5C518'}
-                  onBlur={e => e.target.style.borderColor = '#1C1C1C'}
+                  onFocus={e => e.target.style.borderColor = '#FF5500'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.07)'}
                 />
               </div>
               <input
@@ -366,19 +367,19 @@ export default function Challenge() {
                 onKeyDown={e => e.key === 'Enter' && addTransaction()}
                 style={{
                   flex: 1, padding: '13px 14px',
-                  background: '#0A0A0A', border: '1px solid #1C1C1C',
+                  background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)',
                   borderRadius: '12px', color: '#F0F0F0',
-                  fontSize: '14px', fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                   outline: 'none', boxSizing: 'border-box',
                   transition: 'border-color 0.15s',
                 }}
-                onFocus={e => e.target.style.borderColor = '#F5C518'}
-                onBlur={e => e.target.style.borderColor = '#1C1C1C'}
+                onFocus={e => e.target.style.borderColor = '#FF5500'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.07)'}
               />
             </div>
 
             {error && (
-              <p style={{ color: '#FF3B30', fontSize: '12px', margin: '0 0 10px', animation: 'slide-down 0.2s ease' }}>
+              <p style={{ color: '#FF1040', fontSize: '12px', margin: '0 0 10px', animation: 'slide-down 0.2s ease' }}>
                 {error}
               </p>
             )}
@@ -387,12 +388,13 @@ export default function Challenge() {
               onClick={addTransaction}
               disabled={adding}
               style={{
-                width: '100%', background: adding ? '#1A1A1A' : '#F5C518',
+                width: '100%',
+                background: adding ? '#1E1E1E' : 'linear-gradient(135deg,#FF5500,#FF1040)',
                 border: 'none', borderRadius: '12px', padding: '13px 20px',
-                color: adding ? '#333' : '#0A0A0A',
+                color: adding ? 'rgba(255,255,255,0.38)' : '#fff',
                 fontSize: '14px', fontWeight: 700,
                 cursor: adding ? 'not-allowed' : 'pointer',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 transition: 'background 0.2s, color 0.2s',
               }}
               onMouseEnter={e => { if (!adding) e.currentTarget.style.opacity = '0.85' }}
@@ -406,14 +408,14 @@ export default function Challenge() {
         {/* ── Transaction history ── */}
         {transactions.length > 0 && (
           <div style={{
-            background: '#0D0D0D', border: '1px solid #161616',
+            background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: '20px', overflow: 'hidden',
           }}>
             <p style={{
-              color: '#555', fontSize: '11px', letterSpacing: '0.18em',
+              color: 'rgba(255,255,255,0.38)', fontSize: '11px', letterSpacing: '0.18em',
               textTransform: 'uppercase', fontWeight: 600,
               margin: 0, padding: '20px 24px 16px',
-              borderBottom: '1px solid #161616',
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
             }}>
               Transactions ({transactions.length})
             </p>
@@ -423,41 +425,41 @@ export default function Challenge() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '14px 24px',
-                  borderBottom: i < transactions.length - 1 ? '1px solid #111' : 'none',
+                  borderBottom: i < transactions.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#111'}
+                onMouseEnter={e => e.currentTarget.style.background = '#1E1E1E'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{
-                    color: txn.description ? '#C0C0C0' : '#555',
+                    color: txn.description ? '#F0F0F0' : 'rgba(255,255,255,0.38)',
                     fontSize: '14px', fontWeight: txn.description ? 500 : 400,
                     margin: '0 0 2px',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {txn.description || 'No description'}
                   </p>
-                  <p style={{ color: '#333', fontSize: '12px', margin: 0 }}>
+                  <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0 }}>
                     {formatDate(txn.created_at)}
                   </p>
                 </div>
-                <span style={{ color: '#FF3B30', fontSize: '15px', fontWeight: 700, flexShrink: 0 }}>
+                <span style={{ color: '#FF1040', fontSize: '15px', fontWeight: 700, flexShrink: 0 }}>
                   −{formatINR(txn.amount)}
                 </span>
                 <button
                   onClick={() => deleteTransaction(txn)}
                   disabled={deletingId === txn.id}
                   style={{
-                    background: 'transparent', border: '1px solid #1E1E1E',
+                    background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
                     borderRadius: '8px', padding: '5px 10px',
-                    color: '#333', fontSize: '11px', cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif', flexShrink: 0,
+                    color: 'rgba(255,255,255,0.38)', fontSize: '11px', cursor: 'pointer',
+                    fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', flexShrink: 0,
                     opacity: deletingId === txn.id ? 0.4 : 1,
                     transition: 'border-color 0.15s, color 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF3B30'; e.currentTarget.style.color = '#FF3B30' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#1E1E1E'; e.currentTarget.style.color = '#333' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF1040'; e.currentTarget.style.color = '#FF1040' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.38)' }}
                 >
                   {deletingId === txn.id ? '…' : 'Delete'}
                 </button>
@@ -467,7 +469,7 @@ export default function Challenge() {
         )}
 
         {transactions.length === 0 && !isOver && (
-          <p style={{ color: '#2A2A2A', fontSize: '13px', textAlign: 'center', margin: '8px 0 0' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', textAlign: 'center', margin: '8px 0 0' }}>
             No transactions logged yet. Start tracking above.
           </p>
         )}
