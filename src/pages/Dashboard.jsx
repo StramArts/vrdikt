@@ -1023,7 +1023,7 @@ export default function Dashboard() {
       {/* ── ZONE 2: SEAM (dark strip) ── */}
       <div style={{
         background: '#1B1B1D',
-        padding: '12px 16px 0',
+        padding: '12px 16px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {/* Center bolt — only CTA in the bridge strip */}
