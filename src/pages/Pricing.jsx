@@ -3,14 +3,6 @@ import { useMobile } from '../hooks/useMobile'
 import { useAuth } from '../contexts/AuthContext'
 import AppNav from '../components/AppNav'
 
-function Logo() {
-  return (
-    <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>
-      <span style={{ color: '#F0F0F0' }}>VRD</span><span style={{ color: '#F5C518' }}>IKT</span>
-    </span>
-  )
-}
-
 const TIERS = [
   {
     id: 'free',
@@ -81,152 +73,175 @@ const TIERS = [
   },
 ]
 
+const D = {
+  bg: '#070707', bg2: '#0E0E0F', bg3: '#161617',
+  ink: '#FAFAF8', inkDim: 'rgba(250,250,248,0.55)', inkFaint: 'rgba(250,250,248,0.32)',
+  hair: 'rgba(255,255,255,0.06)', hair2: 'rgba(255,255,255,0.10)',
+}
+const BRAND = { orange: '#FF5500', red: '#FF1040', gold: '#FFD000' }
+
+const TIER_ACCENT = { free: BRAND.orange, couple: BRAND.gold, pro: BRAND.red }
+
+const mono = {
+  fontFamily: 'Geist Mono, ui-monospace, monospace',
+  fontSize: 10, fontWeight: 500,
+  letterSpacing: '0.18em', textTransform: 'uppercase',
+}
+
 export default function Pricing() {
   const navigate = useNavigate()
   const isMobile = useMobile()
   const { user } = useAuth()
 
   return (
-    <div style={{
-      minHeight: '100svh', background: '#0A0A0A',
-      fontFamily: 'Inter, sans-serif', color: '#F0F0F0',
-      display: 'flex', flexDirection: 'column',
-    }}>
+    <div style={{ minHeight: '100svh', background: D.bg, color: D.ink, fontFamily: 'Geist, system-ui, sans-serif', position: 'relative' }}>
 
-      {/* Nav */}
+      {/* Ambient glows */}
+      <div style={{ position: 'fixed', left: '15%', top: '20%', width: 500, height: 500, transform: 'translate(-50%,-50%)', pointerEvents: 'none', background: 'radial-gradient(circle, #FF5500 0%, transparent 60%)', filter: 'blur(2px)', opacity: 0.12, zIndex: 0 }} />
+      <div style={{ position: 'fixed', left: '88%', top: '8%', width: 300, height: 300, transform: 'translate(-50%,-50%)', pointerEvents: 'none', background: 'radial-gradient(circle, #FF1040 0%, transparent 60%)', filter: 'blur(2px)', opacity: 0.09, zIndex: 0 }} />
+      <div style={{ position: 'fixed', left: '72%', top: '60%', width: 360, height: 360, transform: 'translate(-50%,-50%)', pointerEvents: 'none', background: 'radial-gradient(circle, #FFD000 0%, transparent 60%)', filter: 'blur(2px)', opacity: 0.06, zIndex: 0 }} />
+      {/* Subtle grid */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', opacity: 0.4, zIndex: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+
       <AppNav loggedIn={!!user} showDashboardBtn user={user} />
 
-      {/* Hero */}
-      <div style={{ textAlign: 'center', padding: isMobile ? '48px 20px 36px' : '64px 20px 48px' }}>
-        <p style={{
-          color: '#F5C518', fontSize: '11px', letterSpacing: '0.22em',
-          textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px',
-        }}>
-          Simple Pricing
-        </p>
-        <h1 style={{
-          fontSize: 'clamp(30px, 6vw, 50px)', fontWeight: 900,
-          letterSpacing: '-0.04em', margin: '0 0 16px', lineHeight: 1.05,
-        }}>
-          Pick your level of<br />
-          <span style={{ color: '#F5C518' }}>financial punishment</span>
-        </h1>
-        <p style={{ color: '#555', fontSize: '15px', margin: 0, maxWidth: 440, marginInline: 'auto' }}>
-          The roast is free. The pain is optional.
-        </p>
-      </div>
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1040, margin: '0 auto', padding: isMobile ? '32px 20px 100px' : '48px 24px 80px' }}>
 
-      {/* Tiers */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-        gap: '14px',
-        maxWidth: 1020, width: '100%',
-        margin: '0 auto',
-        padding: isMobile ? '0 16px 64px' : '0 24px 80px',
-        alignItems: 'start',
-      }}>
-        {TIERS.map((tier) => (
-          <div
-            key={tier.id}
-            style={{
-              position: 'relative',
-              background: tier.popular ? '#0F0F0F' : '#0A0A0A',
-              border: tier.popular ? '1px solid #F5C518' : '1px solid #161616',
-              borderRadius: '24px',
-              padding: '28px 24px',
-              display: 'flex', flexDirection: 'column', gap: '20px',
-              boxShadow: tier.popular ? '0 0 56px rgba(245,197,24,0.1)' : 'none',
-            }}
-          >
-            {tier.popular && (
-              <div style={{
-                position: 'absolute', top: '-13px', left: '50%',
-                transform: 'translateX(-50%)',
-                background: '#F5C518', borderRadius: '20px',
-                padding: '4px 14px',
-                color: '#0A0A0A', fontSize: '10px', fontWeight: 800,
-                letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-              }}>
-                Most Popular
-              </div>
-            )}
-
-            {/* Header */}
-            <div>
-              <p style={{
-                color: tier.popular ? '#F5C518' : tier.id === 'couple' ? '#C9A227' : '#888',
-                fontSize: '11px', letterSpacing: '0.18em',
-                textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px',
-              }}>
-                {tier.name}
-              </p>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '38px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>
-                  {tier.price}
-                </span>
-                <span style={{ color: '#444', fontSize: '13px' }}>{tier.period}</span>
-              </div>
-              {tier.subtext && (
-                <p style={{ color: '#333', fontSize: '11px', margin: '8px 0 0', lineHeight: 1.4 }}>
-                  {tier.subtext}
-                </p>
-              )}
-              {tier.yearlyNote && (
-                <p style={{ color: '#444', fontSize: '11px', margin: '6px 0 0', lineHeight: 1.4 }}>
-                  {tier.yearlyNote}
-                </p>
-              )}
-            </div>
-
-            {/* Features */}
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '9px' }}>
-              {tier.features.map(f => (
-                <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', color: '#C0C0C0', fontSize: '13px' }}>
-                  <span style={{ color: tier.popular ? '#F5C518' : '#555', fontSize: '11px', marginTop: '2px', flexShrink: 0 }}>✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                onClick={() => tier.ctaLink && navigate(tier.ctaLink)}
-                disabled={!tier.ctaLink}
-                style={{
-                  width: '100%',
-                  background: tier.ctaLink ? '#F5C518' : 'transparent',
-                  border: tier.ctaLink ? 'none' : '1px solid #1E1E1E',
-                  borderRadius: '12px', padding: '13px',
-                  color: tier.ctaLink ? '#0A0A0A' : '#333',
-                  fontSize: '14px', fontWeight: 800,
-                  cursor: tier.ctaLink ? 'pointer' : 'not-allowed',
-                  fontFamily: 'Inter, sans-serif',
-                  transition: 'opacity 0.15s',
-                }}
-                onMouseEnter={e => { if (tier.ctaLink) e.currentTarget.style.opacity = '0.85' }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-              >
-                {tier.cta}
-              </button>
-              {tier.note && (
-                <p style={{ color: '#2A2A2A', fontSize: '11px', textAlign: 'center', margin: 0, lineHeight: 1.4 }}>
-                  {tier.note}
-                </p>
-              )}
-            </div>
+        {/* Hero */}
+        <div style={{ textAlign: 'center', marginBottom: isMobile ? 36 : 52 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 18 }}>
+            <span style={{ width: 6, height: 6, background: BRAND.orange, transform: 'rotate(45deg)', borderRadius: 1, display: 'inline-block' }} />
+            <span style={{ ...mono, color: D.inkDim }}>PICK YOUR PLAN</span>
+            <span style={{ width: 6, height: 6, background: BRAND.orange, transform: 'rotate(45deg)', borderRadius: 1, display: 'inline-block' }} />
           </div>
-        ))}
-      </div>
+          <h1 style={{
+            fontFamily: 'Outfit, sans-serif', fontWeight: 900,
+            fontSize: 'clamp(32px, 7vw, 56px)',
+            letterSpacing: '-0.04em', margin: '0 0 14px', lineHeight: 1.05,
+            color: D.ink,
+          }}>
+            Pick your level of<br />
+            <span style={{ color: BRAND.orange }}>financial punishment.</span>
+          </h1>
+          <p style={{ color: D.inkDim, fontSize: 15, margin: 0, maxWidth: 400, marginInline: 'auto', lineHeight: 1.55 }}>
+            The roast is free. The pain is optional.
+          </p>
+        </div>
 
-      {/* Footer note */}
-      <p style={{
-        textAlign: 'center', color: '#333', fontSize: '13px',
-        padding: '0 24px 48px', margin: 0,
-      }}>
-        Payments coming soon. Get roasted free while it lasts.
-      </p>
+        {/* Tier cards */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: 14,
+          alignItems: 'start',
+        }}>
+          {TIERS.map(tier => {
+            const accent = TIER_ACCENT[tier.id]
+            const isActive = !!tier.ctaLink
+            return (
+              <div
+                key={tier.id}
+                style={{
+                  position: 'relative',
+                  background: D.bg2,
+                  border: `1px solid ${tier.popular ? `${accent}33` : D.hair}`,
+                  borderRadius: 24,
+                  padding: '26px 22px 24px',
+                  display: 'flex', flexDirection: 'column', gap: 20,
+                  boxShadow: tier.popular ? `0 0 56px -16px ${accent}55` : 'none',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Glow corner for popular */}
+                {tier.popular && (
+                  <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: `radial-gradient(circle, ${accent}22 0%, transparent 70%)`, pointerEvents: 'none' }} />
+                )}
+
+                {/* Popular badge */}
+                {tier.popular && (
+                  <div style={{
+                    position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
+                    background: `linear-gradient(90deg, ${BRAND.orange}, ${BRAND.red})`,
+                    borderRadius: '0 0 10px 10px',
+                    padding: '5px 16px',
+                    color: '#fff', fontSize: 9, fontWeight: 800,
+                    letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                  }}>
+                    MOST POPULAR
+                  </div>
+                )}
+
+                {/* Header */}
+                <div style={{ paddingTop: tier.popular ? 12 : 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    <span style={{ width: 5, height: 5, background: accent, transform: 'rotate(45deg)', borderRadius: 1, display: 'inline-block' }} />
+                    <span style={{ ...mono, color: accent }}>{tier.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: 42, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, color: D.ink }}>
+                      {tier.price}
+                    </span>
+                    <span style={{ ...mono, color: D.inkFaint, fontSize: 9 }}>{tier.period}</span>
+                  </div>
+                  {tier.subtext && (
+                    <p style={{ color: D.inkFaint, fontSize: 11, margin: '8px 0 0', lineHeight: 1.4 }}>{tier.subtext}</p>
+                  )}
+                  {tier.yearlyNote && (
+                    <p style={{ color: D.inkFaint, fontSize: 11, margin: '6px 0 0', lineHeight: 1.4 }}>{tier.yearlyNote}</p>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div style={{ height: 1, background: D.hair }} />
+
+                {/* Features */}
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {tier.features.map(f => (
+                    <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, color: 'rgba(250,250,248,0.78)', fontSize: 13, lineHeight: 1.45 }}>
+                      <span style={{ color: accent, fontSize: 10, marginTop: 3, flexShrink: 0, fontWeight: 700 }}>✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto' }}>
+                  <button
+                    onClick={() => tier.ctaLink && navigate(tier.ctaLink)}
+                    disabled={!tier.ctaLink}
+                    style={{
+                      width: '100%', height: 50,
+                      background: isActive ? `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.red})` : 'rgba(255,255,255,0.04)',
+                      border: isActive ? 'none' : `1px solid ${D.hair2}`,
+                      borderRadius: 14,
+                      color: isActive ? '#fff' : D.inkFaint,
+                      fontFamily: 'Outfit, sans-serif',
+                      fontSize: 14, fontWeight: 800,
+                      letterSpacing: '0.04em', textTransform: 'uppercase',
+                      cursor: isActive ? 'pointer' : 'default',
+                      boxShadow: isActive ? `0 8px 24px -8px ${BRAND.orange}88` : 'none',
+                      transition: 'opacity 0.15s',
+                    }}
+                    onMouseEnter={e => { if (tier.ctaLink) e.currentTarget.style.opacity = '0.85' }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+                  >
+                    {tier.cta}
+                  </button>
+                  {tier.note && (
+                    <p style={{ ...mono, color: D.inkFaint, textAlign: 'center', margin: 0, lineHeight: 1.5, fontSize: 9 }}>{tier.note}</p>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Footer */}
+        <p style={{ textAlign: 'center', color: D.inkFaint, fontSize: 13, margin: '40px 0 0', lineHeight: 1.5 }}>
+          Payments coming soon. Get roasted free while it lasts.
+        </p>
+      </div>
     </div>
   )
 }
