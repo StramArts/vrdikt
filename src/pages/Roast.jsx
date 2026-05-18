@@ -56,7 +56,7 @@ function FoilCard({ data = {}, cardRef, preview }) {
     <div ref={cardRef} style={{
       ...pos,
       width: 390, minHeight: 600, borderRadius: 24, padding: 28,
-      overflow: 'visible', fontFamily: 'Geist, system-ui, sans-serif', color: '#fff',
+      overflow: 'hidden', fontFamily: 'Geist, system-ui, sans-serif', color: '#fff',
       background: 'linear-gradient(165deg, #1a1305 0%, #0c0801 100%)',
       border: `1.5px solid ${a}88`,
       boxShadow: `0 0 0 1px ${a}44, 0 0 30px ${a}66`,
@@ -78,12 +78,12 @@ function FoilCard({ data = {}, cardRef, preview }) {
         <div style={{ fontWeight:700,fontSize:13,letterSpacing:'0.2em',color:a }}>VRDIKT ◆</div>
         <span style={{ fontFamily:'Geist Mono,monospace',fontSize:10,color:`${a}cc`,letterSpacing:'0.18em' }}>#{data.caseNo}</span>
       </div>
-      {/* body — flows naturally, no justifyContent center */}
-      <div style={{ position:'relative', flex:1, display:'flex', flexDirection:'column' }}>
+      {/* body — no flex:1 so it grows naturally; no line-clamp on text */}
+      <div style={{ position:'relative', display:'flex', flexDirection:'column' }}>
         <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,color:`${a}aa`,letterSpacing:'0.18em',textTransform:'uppercase' }}>PERSONALITY</span>
-        <div style={{ fontWeight:800,fontSize:20,lineHeight:1.1,marginTop:6,marginBottom:16,letterSpacing:'-0.015em',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' }}>{data.personality || 'VRDIKT MEMBER'}</div>
+        <div style={{ fontWeight:800,fontSize:20,lineHeight:1.2,marginTop:6,marginBottom:16,letterSpacing:'-0.015em' }}>{data.personality || 'VRDIKT MEMBER'}</div>
         {data.roast && (
-          <div style={{ fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:11,lineHeight:1.45,color:'rgba(255,255,255,0.88)',paddingLeft:10,borderLeft:`2px solid ${a}`,marginBottom:16,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' }}>"{data.roast}"</div>
+          <div style={{ fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:12,lineHeight:1.5,color:'rgba(255,255,255,0.88)',paddingLeft:10,borderLeft:`2px solid ${a}`,marginBottom:20 }}>"{data.roast}"</div>
         )}
         <div style={{ display:'flex',alignItems:'baseline',gap:4,lineHeight:0.85 }}>
           <span style={{ fontWeight:900,fontSize:64,color:a,letterSpacing:'-0.05em',textShadow:`0 0 30px ${a}aa` }}>{score}</span>
@@ -92,7 +92,7 @@ function FoilCard({ data = {}, cardRef, preview }) {
         <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,color:`${a}aa`,letterSpacing:'0.18em',marginTop:6 }}>VRDIKT SCORE</span>
       </div>
       {/* footer */}
-      <div style={{ position:'relative', display:'flex',alignItems:'center',gap:8,paddingTop:10,borderTop:`1px dashed ${a}55`,flexShrink:0,marginTop:20 }}>
+      <div style={{ position:'relative', display:'flex',alignItems:'center',gap:8,paddingTop:12,borderTop:`1px dashed ${a}55`,marginTop:24 }}>
         <span style={{ width:5,height:5,background:a,transform:'rotate(45deg)',display:'inline-block' }}/>
         <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,fontWeight:600,color:'#fff',letterSpacing:'0.16em' }}>CERTIFIED ROASTED</span>
       </div>
@@ -110,7 +110,7 @@ function ManifestoCard({ data = {}, cardRef, preview }) {
   return (
     <div ref={cardRef} style={{
       ...pos,
-      width:390, minHeight:600, borderRadius:6, overflow:'visible',
+      width:390, minHeight:600, borderRadius:6, overflow:'hidden',
       background:'#F4EDE0', color:'#0a0a0a',
       fontFamily:'Geist,system-ui,sans-serif',
       boxShadow:'0 30px 60px -16px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(10,10,10,0.08)',
@@ -121,16 +121,15 @@ function ManifestoCard({ data = {}, cardRef, preview }) {
         <div style={{ fontWeight:800, fontSize:18, letterSpacing:'0.18em' }}>VRDIKT<span style={{ color:'#d4a900' }}>◆</span></div>
         <span style={{ fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.18em' }}>CASE #{data.caseNo}</span>
       </div>
-      {/* body — no overflow:hidden so content grows the card */}
-      <div style={{ flex:1, padding:'14px 24px 0', display:'flex', flexDirection:'column' }}>
-        <div style={{ display:'inline-block', padding:'3px 8px', background:'#FF1040', color:'#fff', fontFamily:'Geist Mono,monospace', fontWeight:700, fontSize:10, letterSpacing:'0.2em', alignSelf:'flex-start', marginBottom:12, flexShrink:0 }}>VERDICT</div>
-        {/* personality — 32px max, natural wrapping, no line-clamp */}
-        <div style={{ fontWeight:900, fontSize:32, lineHeight:1, letterSpacing:'-0.04em', color:'#0a0a0a', marginBottom:14 }}>
+      {/* body — no flex:1 and no line-clamp so content grows the card */}
+      <div style={{ padding:'14px 24px 0', display:'flex', flexDirection:'column' }}>
+        <div style={{ display:'inline-block', padding:'3px 8px', background:'#FF1040', color:'#fff', fontFamily:'Geist Mono,monospace', fontWeight:700, fontSize:10, letterSpacing:'0.2em', alignSelf:'flex-start', marginBottom:12 }}>VERDICT</div>
+        <div style={{ fontWeight:900, fontSize:32, lineHeight:1.05, letterSpacing:'-0.04em', color:'#0a0a0a', marginBottom:16 }}>
           {words.slice(0,half).join(' ')}<br/>
           <span style={{ color:'#FF1040' }}>{words.slice(half).join(' ').toLowerCase()}.</span>
         </div>
         {data.roast && (
-          <div style={{ fontFamily:'Georgia,serif', fontStyle:'italic', fontSize:11, lineHeight:1.45, color:'#1a1a1a', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', marginBottom:14 }}>"{data.roast}"</div>
+          <div style={{ fontFamily:'Georgia,serif', fontStyle:'italic', fontSize:12, lineHeight:1.5, color:'#1a1a1a', marginBottom:16 }}>"{data.roast}"</div>
         )}
       </div>
       {/* score + tier */}
@@ -162,7 +161,7 @@ function ReceiptCard({ data = {}, cardRef, preview }) {
       ...pos,
       width:390, minHeight:600, fontFamily:'Geist Mono,ui-monospace,monospace', color:'#0a0a0a',
       filter:'drop-shadow(0 30px 60px rgba(0,0,0,0.45))',
-      boxSizing:'border-box', overflow:'visible',
+      boxSizing:'border-box', overflow:'hidden',
     }}>
       <div style={{ background:'#FAFAF6', padding:'20px 20px', boxSizing:'border-box' }}>
         <div style={{ textAlign:'center' }}>
@@ -195,9 +194,9 @@ function ReceiptCard({ data = {}, cardRef, preview }) {
           </div>
         </div>
         <div style={{ marginTop:14, height:1, borderTop:'1px dashed #0a0a0a' }}/>
-        {/* Roast line — stamp is BELOW this, never over it */}
+        {/* Roast line — full text, no clamp */}
         {data.roast && (
-          <div style={{ marginTop:12, fontSize:11, lineHeight:1.55, color:'#1a1a1a', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical' }}>"{data.roast}"</div>
+          <div style={{ marginTop:12, fontSize:11, lineHeight:1.6, color:'#1a1a1a' }}>"{data.roast}"</div>
         )}
         {/* Stamp below the roast line */}
         <div style={{ marginTop:16, display:'flex', justifyContent:'flex-end' }}>
@@ -223,7 +222,7 @@ function StickerCard({ data = {}, cardRef, preview }) {
   return (
     <div ref={cardRef} style={{
       ...pos,
-      width:390, minHeight:600, borderRadius:24, overflow:'visible',
+      width:390, minHeight:600, borderRadius:24, overflow:'hidden',
       background:'#FF5500', fontFamily:'Geist,system-ui,sans-serif', color:'#0a0a0a',
       boxShadow:'0 30px 60px -16px rgba(255,85,0,0.55)',
       boxSizing:'border-box', display:'flex', flexDirection:'column',
@@ -237,8 +236,8 @@ function StickerCard({ data = {}, cardRef, preview }) {
           <span>★ VERDICT ★</span><span>★ VERDICT ★</span><span>★ VERDICT ★</span>
         </div>
       </div>
-      {/* Content wrapper — flex:1 so the outer card determines its height */}
-      <div style={{ position:'relative', padding:24, flex:1, display:'flex', flexDirection:'column', boxSizing:'border-box' }}>
+      {/* Content wrapper — no flex:1, grows naturally with content */}
+      <div style={{ position:'relative', padding:24, display:'flex', flexDirection:'column', boxSizing:'border-box' }}>
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div style={{ fontWeight:800, fontSize:18, letterSpacing:'0.2em' }}>VRDIKT</div>
@@ -251,10 +250,10 @@ function StickerCard({ data = {}, cardRef, preview }) {
         </div>
         <div style={{ marginTop:6, fontWeight:700, fontSize:14, letterSpacing:'0.18em', flexShrink:0 }}>OUT OF 100.</div>
         <div style={{ flex:1, minHeight:40 }}/>
-        {/* Personality section — minHeight 120, padding 20px 16px, clear of orange area */}
-        <div style={{ minHeight:120, padding:'20px 16px', borderRadius:16, background:'#0a0a0a', color:'#FFD000', flexShrink:0, display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        {/* Personality section — full text, no clamp */}
+        <div style={{ minHeight:120, padding:'20px 16px', borderRadius:16, background:'#0a0a0a', color:'#FFD000', display:'flex', flexDirection:'column', justifyContent:'center' }}>
           <div style={{ fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.2em', opacity:0.7 }}>YOU ARE</div>
-          <div style={{ fontWeight:800, fontSize:16, lineHeight:1.1, marginTop:6, letterSpacing:'-0.005em', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{data.personality||'FINANCIALLY ROASTED'}</div>
+          <div style={{ fontWeight:800, fontSize:16, lineHeight:1.2, marginTop:6, letterSpacing:'-0.005em' }}>{data.personality||'FINANCIALLY ROASTED'}</div>
         </div>
         {/* GUILTY stamp */}
         <div style={{ position:'absolute', top:92, right:20, transform:'rotate(12deg)', padding:'6px 12px', border:'2px solid #0a0a0a', borderRadius:4, background:'#FFD000', fontWeight:800, fontSize:11, letterSpacing:'0.16em', boxShadow:'3px 3px 0 #0a0a0a', zIndex:2 }}>GUILTY</div>
