@@ -56,8 +56,8 @@ function formatDate(ts) {
 }
 
 function scoreColor(s) {
-  if (s == null) return '#555'
-  return s < 40 ? '#FF3B30' : s > 70 ? '#30D158' : '#F5C518'
+  if (s == null) return 'rgba(255,255,255,0.38)'
+  return '#FF1040'
 }
 
 function parseRoastJSON(raw) {
@@ -303,7 +303,7 @@ export default function CoupleMode() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 0' }}>
-        <p style={{ color: '#333', fontSize: '14px' }}>Loading…</p>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '14px' }}>Loading…</p>
       </div>
     )
   }
@@ -314,7 +314,7 @@ export default function CoupleMode() {
 
   if (!coupleLink) {
     const inputStyle = {
-      background: '#0A0A0A', border: '1px solid #1E1E1E', borderRadius: '10px',
+      background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px',
       padding: '12px 16px', color: '#F0F0F0',
       fontSize: '22px', fontWeight: 800, letterSpacing: '0.22em',
       fontFamily: 'monospace', textAlign: 'center', outline: 'none', width: '100%',
@@ -326,32 +326,33 @@ export default function CoupleMode() {
 
         {/* Single centered card */}
         <div style={{
-          background: '#0D0D0D', border: '1px solid #161616',
+          background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '24px', padding: '32px 24px',
           textAlign: 'center',
         }}>
           <h2 style={{
             fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 900,
             letterSpacing: '-0.04em', margin: '0 0 8px', color: '#F0F0F0',
+            fontFamily: 'var(--font-display, Outfit), sans-serif',
           }}>
             Couple Mode
           </h2>
-          <p style={{ color: '#444', fontSize: '13px', margin: '0 0 28px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: '0 0 28px' }}>
             Get financially destroyed together.
           </p>
 
           {/* Pending code: show only the code */}
           {myCode ? (
             <div style={{ maxWidth: 320, margin: '0 auto' }}>
-              <p style={{ color: '#F5C518', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 12px' }}>
+              <p style={{ color: '#FF5500', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 12px' }}>
                 Your Invite Code
               </p>
               <div style={{
-                background: '#111', border: '1px solid rgba(245,197,24,0.2)',
+                background: '#1E1E1E', border: '1px solid rgba(255,85,0,0.2)',
                 borderRadius: '14px', padding: '20px 16px', marginBottom: '14px',
               }}>
                 <p style={{
-                  color: '#F5C518', fontSize: '36px', fontWeight: 900,
+                  color: '#FF5500', fontSize: '36px', fontWeight: 900,
                   letterSpacing: '0.18em', margin: '0 0 12px', fontFamily: 'monospace',
                 }}>
                   {myCode}
@@ -359,19 +360,19 @@ export default function CoupleMode() {
                 <button
                   onClick={copyCode}
                   style={{
-                    background: copied ? 'rgba(48,209,88,0.1)' : 'rgba(245,197,24,0.08)',
-                    border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(245,197,24,0.2)'}`,
+                    background: copied ? 'rgba(255,85,0,0.1)' : 'rgba(255,85,0,0.08)',
+                    border: `1px solid ${copied ? 'rgba(255,85,0,0.4)' : 'rgba(255,85,0,0.2)'}`,
                     borderRadius: '8px', padding: '8px 22px',
-                    color: copied ? '#30D158' : '#F5C518',
+                    color: copied ? '#FF5500' : '#FF5500',
                     fontSize: '13px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'all 0.2s',
+                    cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', transition: 'all 0.2s',
                   }}
                 >
                   {copied ? '✓ Copied!' : 'Copy Code'}
                 </button>
               </div>
-              <p style={{ color: '#2A2A2A', fontSize: '11px', margin: 0, fontFeatureSettings: '"tnum"' }}>
-                Expires in <span style={{ color: '#F5C518', fontWeight: 700 }}>{countdown}</span>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: 0, fontFeatureSettings: '"tnum"' }}>
+                Expires in <span style={{ color: '#FF5500', fontWeight: 700 }}>{countdown}</span>
               </p>
             </div>
           ) : (
@@ -380,21 +381,21 @@ export default function CoupleMode() {
 
               {/* Generate code */}
               <div style={{
-                background: '#111', border: '1px solid #1A1A1A',
+                background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: '18px', padding: '20px',
                 display: 'flex', flexDirection: 'column', gap: '14px',
               }}>
-                <p style={{ color: '#F5C518', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
+                <p style={{ color: '#FF5500', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
                   Generate Code
                 </p>
                 <button
                   onClick={handleGenerateCode}
                   disabled={generatingCode}
                   style={{
-                    background: '#F5C518', border: 'none', borderRadius: '10px', padding: '12px',
-                    color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
+                    background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '10px', padding: '12px',
+                    color: '#fff', fontSize: '13px', fontWeight: 800,
                     cursor: generatingCode ? 'not-allowed' : 'pointer',
-                    fontFamily: 'Inter, sans-serif',
+                    fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                     opacity: generatingCode ? 0.7 : 1, transition: 'opacity 0.15s',
                   }}
                 >
@@ -404,11 +405,11 @@ export default function CoupleMode() {
 
               {/* Enter code */}
               <div style={{
-                background: '#111', border: '1px solid #1A1A1A',
+                background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: '18px', padding: '20px',
                 display: 'flex', flexDirection: 'column', gap: '14px',
               }}>
-                <p style={{ color: '#F5C518', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
+                <p style={{ color: '#FF5500', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
                   Enter Code
                 </p>
                 <input
@@ -417,22 +418,22 @@ export default function CoupleMode() {
                   placeholder="X7K2P9"
                   maxLength={6}
                   style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#F5C518' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#1E1E1E' }}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#FF5500' }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
                 />
                 {linkError && (
-                  <p style={{ color: '#FF3B30', fontSize: '12px', margin: 0, textAlign: 'center' }}>{linkError}</p>
+                  <p style={{ color: '#FF1040', fontSize: '12px', margin: 0, textAlign: 'center' }}>{linkError}</p>
                 )}
                 <button
                   onClick={handleLinkUp}
                   disabled={partnerCode.length < 6 || linking}
                   style={{
-                    background: partnerCode.length === 6 ? '#F5C518' : '#141414',
+                    background: partnerCode.length === 6 ? 'linear-gradient(135deg,#FF5500,#FF1040)' : '#1E1E1E',
                     border: 'none', borderRadius: '10px', padding: '12px',
-                    color: partnerCode.length === 6 ? '#0A0A0A' : '#2A2A2A',
+                    color: partnerCode.length === 6 ? '#fff' : 'rgba(255,255,255,0.2)',
                     fontSize: '13px', fontWeight: 800,
                     cursor: partnerCode.length === 6 ? 'pointer' : 'not-allowed',
-                    fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+                    fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', transition: 'all 0.15s',
                   }}
                 >
                   {linking ? 'Linking…' : 'Link Up'}
@@ -457,47 +458,42 @@ export default function CoupleMode() {
 
       {/* Hero: You & partner */}
       <div style={{
-        background: '#0D0D0D', border: '1px solid rgba(201,162,39,0.2)',
+        background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
         borderRadius: '24px', padding: '28px 24px',
         position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at top left, rgba(245,197,24,0.04) 0%, transparent 60%)',
-          pointerEvents: 'none',
-        }} />
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ color: '#F0F0F0', fontSize: '20px', fontWeight: 900, margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+            <h3 style={{ color: '#F0F0F0', fontSize: '20px', fontWeight: 900, margin: '0 0 4px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
               You & {partnerDisplay}
             </h3>
-            <p style={{ color: '#2A2A2A', fontSize: '11px', margin: 0 }}>Linked since {linkedSince}</p>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: 0 }}>Linked since {linkedSince}</p>
           </div>
           {!showUnlinkConfirm ? (
             <button
               onClick={() => setShowUnlinkConfirm(true)}
               style={{
-                background: 'transparent', border: '1px solid #1A1A1A',
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
                 borderRadius: '8px', padding: '6px 12px',
-                color: '#2A2A2A', fontSize: '11px', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                color: 'rgba(255,255,255,0.38)', fontSize: '11px', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 transition: 'border-color 0.2s, color 0.2s', flexShrink: 0,
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF3B30'; e.currentTarget.style.color = '#FF3B30' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1A1A1A'; e.currentTarget.style.color = '#2A2A2A' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF1040'; e.currentTarget.style.color = '#FF1040' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.38)' }}
             >
               Unlink
             </button>
           ) : (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ color: '#444', fontSize: '12px' }}>Sure?</span>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px' }}>Sure?</span>
               <button onClick={handleUnlink} style={{
-                background: '#FF3B30', border: 'none', borderRadius: '8px', padding: '6px 12px',
-                color: '#FFF', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                background: '#FF1040', border: 'none', borderRadius: '8px', padding: '6px 12px',
+                color: '#FFF', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
               }}>Yes</button>
               <button onClick={() => setShowUnlinkConfirm(false)} style={{
-                background: 'transparent', border: '1px solid #1A1A1A', borderRadius: '8px', padding: '6px 12px',
-                color: '#444', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', padding: '6px 12px',
+                color: 'rgba(255,255,255,0.38)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
               }}>Cancel</button>
             </div>
           )}
@@ -505,17 +501,17 @@ export default function CoupleMode() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
           {personality && (
             <span style={{
-              background: 'rgba(201,162,39,0.1)', border: '1px solid rgba(201,162,39,0.25)',
+              background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.25)',
               borderRadius: '999px', padding: '4px 14px',
-              color: '#C9A227', fontSize: '12px', fontWeight: 700,
+              color: '#FF5500', fontSize: '12px', fontWeight: 700,
             }}>
               {personality}
             </span>
           )}
           {avgScore != null && (
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
-              <span style={{ color: scoreColor(avgScore), fontSize: '32px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>{avgScore}</span>
-              <span style={{ color: '#2A2A2A', fontSize: '13px', fontWeight: 700 }}>/100</span>
+              <span style={{ color: '#FF1040', fontSize: '32px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>{avgScore}</span>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', fontWeight: 700 }}>/100</span>
             </div>
           )}
         </div>
@@ -524,21 +520,22 @@ export default function CoupleMode() {
       {/* Comparison: 2-col */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
         {[
-          { name: 'You', total: myTotal, topCat: myTopCat, score: myScore },
-          { name: partnerDisplay, total: partnerTotal, topCat: partnerTopCat, score: partnerScore },
-        ].map(({ name, total, topCat, score }) => (
+          { name: 'You', total: myTotal, topCat: myTopCat, score: myScore, isMe: true },
+          { name: partnerDisplay, total: partnerTotal, topCat: partnerTopCat, score: partnerScore, isMe: false },
+        ].map(({ name, total, topCat, score, isMe }) => (
           <div key={name} style={{
-            background: '#0D0D0D', border: '1px solid #161616',
+            background: '#141414',
+            border: isMe ? '1px solid rgba(255,85,0,0.3)' : '1px solid rgba(255,255,255,0.07)',
             borderRadius: '18px', padding: '18px',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
-            <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>{name}</p>
-            <p style={{ color: '#FF3B30', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0, lineHeight: 1 }}>
+            <p style={{ color: isMe ? '#FF5500' : 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>{name}</p>
+            <p style={{ color: '#F0F0F0', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', margin: 0, lineHeight: 1 }}>
               {total > 0 ? `₹${total.toLocaleString('en-IN')}` : '—'}
             </p>
-            {topCat && <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>Top: {topCat}</p>}
+            {topCat && <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: 0 }}>Top: {topCat}</p>}
             {score != null && (
-              <p style={{ color: scoreColor(score), fontSize: '12px', fontWeight: 700, margin: 0 }}>{score}/100</p>
+              <p style={{ color: '#FF1040', fontSize: '12px', fontWeight: 700, margin: 0 }}>{score}/100</p>
             )}
           </div>
         ))}
@@ -546,11 +543,11 @@ export default function CoupleMode() {
 
       {/* Shared Savings Goal — compact */}
       <div style={{
-        background: '#0D0D0D', border: '1px solid #161616',
+        background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
         borderRadius: '18px', padding: '20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: 0 }}>
             Shared Goal
           </p>
           {coupleLink.goal_name && !editingGoal && (
@@ -563,9 +560,9 @@ export default function CoupleMode() {
                 setEditingGoal(true)
               }}
               style={{
-                background: 'transparent', border: '1px solid #1A1A1A', borderRadius: '8px', padding: '4px 10px',
-                color: '#333', fontSize: '10px', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', padding: '4px 10px',
+                color: 'rgba(255,255,255,0.38)', fontSize: '10px', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
               }}
             >
               Edit
@@ -581,17 +578,17 @@ export default function CoupleMode() {
               { value: goalSaved,  onChange: e => setGoalSaved(e.target.value),  placeholder: 'Already saved (₹)', type: 'number' },
             ].map((props, i) => (
               <input key={i} {...props} style={{
-                background: '#0A0A0A', border: '1px solid #1E1E1E', borderRadius: '10px',
+                background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px',
                 padding: '10px 14px', color: '#F0F0F0', fontSize: '13px',
-                fontFamily: 'Inter, sans-serif', outline: 'none',
+                fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', outline: 'none',
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = '#333' }}
-              onBlur={e => { e.currentTarget.style.borderColor = '#1E1E1E' }} />
+              onFocus={e => { e.currentTarget.style.borderColor = '#FF5500' }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }} />
             ))}
             <input type="date" value={goalDate} onChange={e => setGoalDate(e.target.value)} style={{
-              background: '#0A0A0A', border: '1px solid #1E1E1E', borderRadius: '10px',
+              background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px',
               padding: '10px 14px', color: '#F0F0F0', fontSize: '13px',
-              fontFamily: 'Inter, sans-serif', outline: 'none', colorScheme: 'dark',
+              fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', outline: 'none', colorScheme: 'dark',
             }} />
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
@@ -599,12 +596,12 @@ export default function CoupleMode() {
                 disabled={!goalName || !goalAmount || savingGoal}
                 style={{
                   flex: 1,
-                  background: goalName && goalAmount ? '#F5C518' : '#141414',
+                  background: goalName && goalAmount ? 'linear-gradient(135deg,#FF5500,#FF1040)' : '#1E1E1E',
                   border: 'none', borderRadius: '10px', padding: '10px',
-                  color: goalName && goalAmount ? '#0A0A0A' : '#2A2A2A',
+                  color: goalName && goalAmount ? '#fff' : 'rgba(255,255,255,0.2)',
                   fontSize: '13px', fontWeight: 800,
                   cursor: goalName && goalAmount ? 'pointer' : 'not-allowed',
-                  fontFamily: 'Inter, sans-serif',
+                  fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 }}
               >
                 {savingGoal ? 'Saving…' : 'Set Goal'}
@@ -613,9 +610,9 @@ export default function CoupleMode() {
                 <button
                   onClick={() => setEditingGoal(false)}
                   style={{
-                    background: 'transparent', border: '1px solid #1E1E1E', borderRadius: '10px', padding: '10px 14px',
-                    color: '#555', fontSize: '13px', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                    background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '10px 14px',
+                    color: 'rgba(255,255,255,0.38)', fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                   }}
                 >
                   Cancel
@@ -626,24 +623,24 @@ export default function CoupleMode() {
         ) : (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
-              <p style={{ color: '#F5C518', fontSize: '14px', fontWeight: 700, margin: 0 }}>{coupleLink.goal_name}</p>
-              <p style={{ color: '#444', fontSize: '11px', margin: 0 }}>
+              <p style={{ color: '#FF5500', fontSize: '14px', fontWeight: 700, margin: 0 }}>{coupleLink.goal_name}</p>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: 0 }}>
                 ₹{Number(coupleLink.goal_saved ?? 0).toLocaleString('en-IN')} / ₹{Number(coupleLink.goal_amount).toLocaleString('en-IN')}
               </p>
             </div>
-            <div style={{ background: '#1A1A1A', borderRadius: '6px', height: '8px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '6px', height: '8px', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{
                 height: '100%', width: `${goalPct}%`,
-                background: 'linear-gradient(90deg, #30D158, #4CAF50)',
+                background: 'linear-gradient(90deg,#FF5500,#FF1040)',
                 borderRadius: '6px', transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
               }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#30D158', fontSize: '11px', fontWeight: 700 }}>{goalPct}% saved</span>
-              <span style={{ color: '#333', fontSize: '11px' }}>₹{goalRemaining.toLocaleString('en-IN')} to go</span>
+              <span style={{ color: '#FF5500', fontSize: '11px', fontWeight: 700 }}>{goalPct}% saved</span>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px' }}>₹{goalRemaining.toLocaleString('en-IN')} to go</span>
             </div>
             {goalPct >= 100 && (
-              <p style={{ color: '#30D158', fontSize: '12px', fontWeight: 700, textAlign: 'center', margin: '10px 0 0' }}>
+              <p style={{ color: '#FF5500', fontSize: '12px', fontWeight: 700, textAlign: 'center', margin: '10px 0 0' }}>
                 Goal reached!
               </p>
             )}
@@ -654,31 +651,31 @@ export default function CoupleMode() {
       {/* Couple Roast — full-width gold at bottom */}
       {coupleRoast ? (
         <div style={{
-          background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.15)',
+          background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '20px', padding: '24px',
           display: 'flex', flexDirection: 'column', gap: '20px',
         }}>
           <div style={{ textAlign: 'center' }}>
             <p style={{
-              color: '#F5C518', fontSize: '10px', letterSpacing: '0.22em',
+              color: '#FF5500', fontSize: '10px', letterSpacing: '0.22em',
               textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px',
             }}>
               WE GOT ROASTED
             </p>
-            <p style={{ color: '#C9A227', fontSize: '20px', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            <p style={{ color: '#F0F0F0', fontSize: '20px', fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
               {coupleRoast.personalityType}
             </p>
             <p style={{ margin: 0 }}>
-              <span style={{ color: scoreColor(coupleRoast.score), fontSize: '32px', fontWeight: 900, letterSpacing: '-0.03em' }}>
+              <span style={{ color: '#FF1040', fontSize: '32px', fontWeight: 900, letterSpacing: '-0.03em' }}>
                 {coupleRoast.score}
               </span>
-              <span style={{ color: '#333', fontSize: '14px', fontWeight: 600 }}>/100</span>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '14px', fontWeight: 600 }}>/100</span>
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {coupleRoast.roastLines.map((line, i) => (
               <p key={i} style={{
-                color: '#FF3B30', fontSize: '14px', fontWeight: 600,
+                color: '#FF1040', fontSize: '14px', fontWeight: 600,
                 margin: 0, lineHeight: 1.55, textAlign: 'center',
               }}>
                 "{line}"
@@ -691,20 +688,20 @@ export default function CoupleMode() {
               { label: partnerDisplay, score: coupleRoast.partnerScore },
             ].map(({ label, score }) => (
               <div key={label} style={{
-                background: '#111', borderRadius: '14px', padding: '14px', textAlign: 'center',
+                background: '#1E1E1E', borderRadius: '14px', padding: '14px', textAlign: 'center',
               }}>
-                <p style={{ color: '#333', fontSize: '10px', fontWeight: 600, margin: '0 0 4px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', fontWeight: 600, margin: '0 0 4px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {label}
                 </p>
                 <p style={{ margin: 0 }}>
-                  <span style={{ color: scoreColor(score), fontSize: '26px', fontWeight: 900 }}>{score}</span>
-                  <span style={{ color: '#2A2A2A', fontSize: '12px' }}>/100</span>
+                  <span style={{ color: '#FF1040', fontSize: '26px', fontWeight: 900 }}>{score}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px' }}>/100</span>
                 </p>
               </div>
             ))}
           </div>
           {coupleRoast.savageInsight && (
-            <p style={{ color: '#444', fontSize: '13px', textAlign: 'center', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', textAlign: 'center', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
               "{coupleRoast.savageInsight}"
             </p>
           )}
@@ -717,7 +714,7 @@ export default function CoupleMode() {
               background: 'transparent', border: '1px solid #25D366',
               borderRadius: '12px', padding: '12px',
               color: '#25D366', fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
             }}
           >
             Share on WhatsApp
@@ -725,10 +722,10 @@ export default function CoupleMode() {
           <button
             onClick={() => setCoupleRoast(null)}
             style={{
-              background: 'transparent', border: '1px solid #1A1A1A',
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
               borderRadius: '12px', padding: '11px',
-              color: '#333', fontSize: '13px', fontWeight: 600,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              color: 'rgba(255,255,255,0.38)', fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
             }}
           >
             Generate New Roast
@@ -736,10 +733,10 @@ export default function CoupleMode() {
         </div>
       ) : generatingRoast ? (
         <div style={{
-          background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.1)',
+          background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '16px', padding: '28px 24px', textAlign: 'center',
         }}>
-          <p style={{ color: '#555', fontSize: '14px', margin: 0, fontStyle: 'italic' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '14px', margin: 0, fontStyle: 'italic' }}>
             Analysing your combined financial crimes…
           </p>
         </div>
@@ -747,10 +744,10 @@ export default function CoupleMode() {
         <button
           onClick={handleCoupleRoast}
           style={{
-            background: '#F5C518', border: 'none', borderRadius: '14px', padding: '16px',
-            color: '#0A0A0A', fontSize: '15px', fontWeight: 900,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            boxShadow: '0 0 32px rgba(245,197,24,0.15)',
+            background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '14px', padding: '16px',
+            color: '#fff', fontSize: '15px', fontWeight: 900,
+            cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
+            boxShadow: '0 0 32px rgba(255,85,0,0.2)',
             letterSpacing: '-0.01em', width: '100%',
             transition: 'opacity 0.15s, transform 0.15s',
           }}
