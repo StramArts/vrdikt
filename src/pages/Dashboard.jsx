@@ -937,7 +937,7 @@ export default function Dashboard() {
         }}>
           {/* Greeting block */}
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: '#0A0A0A' }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#0A0A0A', textTransform: 'capitalize' }}>
               Hi {(profile?.full_name && profile.full_name.trim()) ? profile.full_name.split(' ')[0] : (user?.email?.split('@')[0] ?? 'there')}!
             </div>
             <div style={{ fontSize: 15, color: '#6B6B70', fontWeight: 500 }}>
@@ -1024,26 +1024,9 @@ export default function Dashboard() {
       <div style={{
         background: '#1B1B1D',
         padding: '12px 16px 0',
-        display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        {/* Left pill — Log */}
-        <button
-          onClick={() => navigate('/upload')}
-          style={{
-            flex: 1, height: 56, padding: '0 18px', borderRadius: 18, border: 'none',
-            background: '#1B1B1D', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10,
-            fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 15, cursor: 'pointer',
-            boxShadow: '0 8px 24px -10px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset',
-          }}
-        >
-          <span>Log</span>
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontSize: 18, lineHeight: 1 }}>+</span>
-          </div>
-        </button>
-
-        {/* Center bolt — navigate to upload */}
+        {/* Center bolt — only CTA in the bridge strip */}
         <button
           onClick={() => navigate('/upload')}
           style={{
@@ -1057,29 +1040,12 @@ export default function Dashboard() {
             <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff" stroke="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
           </div>
         </button>
-
-        {/* Right pill — Stats */}
-        <button
-          onClick={() => setTab('transactions')}
-          style={{
-            flex: 1, height: 56, padding: '0 18px', borderRadius: 18, border: 'none',
-            background: '#1B1B1D', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
-            fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 15, cursor: 'pointer',
-            boxShadow: '0 8px 24px -10px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset',
-          }}
-        >
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontSize: 14, lineHeight: 1 }}>↗</span>
-          </div>
-          <span>Stats</span>
-        </button>
       </div>
 
-      {/* ── ZONE 3: CONTENT (white card) ── */}
+      {/* ── ZONE 3: CONTENT (dark card) ── */}
       <div style={{
         flex: 1,
-        background: '#FFFFFF',
+        background: '#0A0A0A',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         overflow: 'hidden',
@@ -1103,9 +1069,9 @@ export default function Dashboard() {
                   key={id}
                   onClick={() => setTab(id)}
                   style={{
-                    background: active ? '#0A0A0A' : 'transparent',
-                    border: `1px solid ${active ? '#0A0A0A' : 'rgba(10,10,10,0.12)'}`,
-                    color: active ? '#fff' : '#6B6B70',
+                    background: active ? '#F0F0F0' : 'transparent',
+                    border: `1px solid ${active ? '#F0F0F0' : 'rgba(255,255,255,0.14)'}`,
+                    color: active ? '#0A0A0A' : 'rgba(255,255,255,0.38)',
                     borderRadius: 999, padding: '6px 14px',
                     fontSize: 10, fontWeight: 600, letterSpacing: '0.1em',
                     textTransform: 'uppercase', whiteSpace: 'nowrap',
@@ -1123,42 +1089,42 @@ export default function Dashboard() {
               {/* Bento row: Sunday Roast + Streak */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 12, marginBottom: 12 }}>
                 {/* Sunday Roast card */}
-                <div style={{ padding: 16, borderRadius: 22, background: '#F4F4F4', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ padding: 16, borderRadius: 22, background: '#141414', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, background: 'radial-gradient(circle, rgba(255,16,64,0.13), transparent 70%)' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: '#0A0A0A' }}>Sunday Roast</span>
-                    <div style={{ width: 22, height: 22, borderRadius: 99, background: '#fff', border: '1px solid rgba(255,16,64,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔥</div>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: '#F0F0F0' }}>Sunday Roast</span>
+                    <div style={{ width: 22, height: 22, borderRadius: 99, background: '#1E1E1E', border: '1px solid rgba(255,16,64,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔥</div>
                   </div>
-                  <div style={{ fontWeight: 800, fontSize: 28, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, marginTop: 18 }}>
+                  <div style={{ fontWeight: 800, fontSize: 28, color: '#F0F0F0', letterSpacing: '-0.03em', lineHeight: 1, marginTop: 18 }}>
                     {daysToSunday === 0 ? 'Today!' : daysToSunday + 'd'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6B6B70', marginTop: 4 }}>until next verdict</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 4 }}>until next verdict</div>
                 </div>
 
                 {/* Streak card */}
-                <div style={{ padding: 16, borderRadius: 22, background: '#F4F4F4', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ padding: 16, borderRadius: 22, background: '#141414', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: '#0A0A0A' }}>Streak</span>
-                    <div style={{ width: 22, height: 22, borderRadius: 99, background: '#fff', border: '1px solid rgba(255,208,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔥</div>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: '#F0F0F0' }}>Streak</span>
+                    <div style={{ width: 22, height: 22, borderRadius: 99, background: '#1E1E1E', border: '1px solid rgba(255,208,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔥</div>
                   </div>
-                  <div style={{ fontWeight: 800, fontSize: 28, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, marginTop: 18, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <div style={{ fontWeight: 800, fontSize: 28, color: '#F0F0F0', letterSpacing: '-0.03em', lineHeight: 1, marginTop: 18, display: 'flex', alignItems: 'baseline', gap: 4 }}>
                     {streak > 0
-                      ? <>{streak}<span style={{ fontSize: 14, color: '#6B6B70', fontWeight: 500 }}> days</span></>
+                      ? <>{streak}<span style={{ fontSize: 14, color: 'rgba(255,255,255,0.38)', fontWeight: 500 }}> days</span></>
                       : '0 🔥'
                     }
                   </div>
-                  <div style={{ fontSize: 11, color: '#6B6B70', marginTop: 4 }}>keep it going</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 4 }}>keep it going</div>
                 </div>
               </div>
 
               {/* Spent card */}
-              <div style={{ marginTop: 12, padding: 16, borderRadius: 22, background: '#F4F4F4', position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
+              <div style={{ marginTop: 12, padding: 16, borderRadius: 22, background: '#141414', position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <span style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 9, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#6B6B70' }}>
+                    <span style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 9, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.38)' }}>
                       SPENT · {new Date().toLocaleString('default', { month: 'short' }).toUpperCase()}
                     </span>
-                    <div style={{ fontWeight: 800, fontSize: 26, color: '#0A0A0A', letterSpacing: '-0.025em', marginTop: 6 }}>
+                    <div style={{ fontWeight: 800, fontSize: 26, color: '#F0F0F0', letterSpacing: '-0.025em', marginTop: 6 }}>
                       {spentThisMonth === 0 ? '₹—' : '₹' + spentThisMonth.toLocaleString('en-IN')}
                     </div>
                   </div>
@@ -1179,32 +1145,32 @@ export default function Dashboard() {
 
               {/* Recent activity header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 4px 10px' }}>
-                <span style={{ fontWeight: 600, fontSize: 14, color: '#0A0A0A' }}>Recent activity</span>
+                <span style={{ fontWeight: 600, fontSize: 14, color: '#F0F0F0' }}>Recent activity</span>
                 <button
                   onClick={() => setTab('transactions')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B6B70', fontSize: 13, padding: 0 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.38)', fontSize: 13, padding: 0 }}
                 >See all →</button>
               </div>
 
               {/* Transaction list */}
               {recentTxns.length === 0
                 ? !gmailStatus?.connected
-                  ? <p style={{ color: '#9A9A9F', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>Connect Gmail to see transactions</p>
-                  : <p style={{ color: '#9A9A9F', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>No transactions yet</p>
+                  ? <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>Connect Gmail to see transactions</p>
+                  : <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>No transactions yet</p>
                 : recentTxns.map((tx, i) => {
                     const isCredit = (tx.type ?? '').toLowerCase().includes('credit')
                     return (
-                      <div key={tx.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 4px', borderBottom: '1px solid rgba(10,10,10,0.07)' }}>
-                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#fff', border: '1px solid rgba(10,10,10,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                      <div key={tx.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 4px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
                           {CATEGORY_ICONS[tx.category] ?? '💸'}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: 14, color: '#0A0A0A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: '#F0F0F0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {tx.merchant ?? tx.category ?? 'Transaction'}
                           </div>
-                          <div style={{ fontSize: 11, color: '#9A9A9F', marginTop: 2 }}>{timeAgo(tx.date ?? tx.created_at)}</div>
+                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>{timeAgo(tx.date ?? tx.created_at)}</div>
                         </div>
-                        <span style={{ fontWeight: 700, fontSize: 15, color: isCredit ? '#0d8a3f' : '#FF1040', letterSpacing: '-0.01em', flexShrink: 0 }}>
+                        <span style={{ fontWeight: 700, fontSize: 15, color: isCredit ? '#30D158' : '#FF1040', letterSpacing: '-0.01em', flexShrink: 0 }}>
                           {isCredit ? '+' : '−'}₹{Number(tx.amount).toLocaleString('en-IN')}
                         </span>
                       </div>
