@@ -19,11 +19,11 @@ function Logo() {
 }
 
 const EXPENSE_CATEGORIES = [
-  { key: 'food',          label: 'Food',          color: '#FF3B30' },
-  { key: 'accommodation', label: 'Stay',           color: '#F5C518' },
+  { key: 'food',          label: 'Food',          color: '#FF1040' },
+  { key: 'accommodation', label: 'Stay',           color: '#FFD000' },
   { key: 'transport',     label: 'Transport',      color: '#4CAF50' },
   { key: 'activities',    label: 'Activities',     color: '#AF52DE' },
-  { key: 'shopping',      label: 'Shopping',       color: '#FF9500' },
+  { key: 'shopping',      label: 'Shopping',       color: '#FF5500' },
   { key: 'other',         label: 'Other',          color: '#636366' },
 ]
 
@@ -35,14 +35,14 @@ const TABS = [
 ]
 
 const INPUT_STYLE = {
-  width: '100%', background: '#0A0A0A', border: '1px solid #1E1E1E',
+  width: '100%', background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)',
   borderRadius: '10px', padding: '11px 14px', color: '#F0F0F0',
-  fontSize: '14px', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box',
+  fontSize: '14px', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', boxSizing: 'border-box',
   outline: 'none',
 }
 
 const LABEL_STYLE = {
-  color: '#444', fontSize: '11px', fontWeight: 700,
+  color: 'rgba(255,255,255,0.38)', fontSize: '11px', fontWeight: 700,
   letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '6px',
 }
 
@@ -66,17 +66,17 @@ function TabPill({ id, label, active, onClick }) {
     <button
       onClick={() => onClick(id)}
       style={{
-        background: active ? '#F5C518' : 'transparent',
-        border: `1px solid ${active ? '#F5C518' : '#1E1E1E'}`,
+        background: active ? '#FF5500' : 'transparent',
+        border: `1px solid ${active ? '#FF5500' : 'rgba(255,255,255,0.14)'}`,
         borderRadius: '999px', padding: '8px 18px',
-        color: active ? '#0A0A0A' : '#555',
+        color: active ? '#fff' : 'rgba(255,255,255,0.38)',
         fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em',
-        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
         transition: 'background 0.15s, color 0.15s, border-color 0.15s',
         whiteSpace: 'nowrap',
       }}
-      onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = '#F5C518'; e.currentTarget.style.color = '#F5C518' } }}
-      onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = '#1E1E1E'; e.currentTarget.style.color = '#555' } }}
+      onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = '#FF5500'; e.currentTarget.style.color = '#FF5500' } }}
+      onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.38)' } }}
     >
       {label}
     </button>
@@ -139,15 +139,15 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <p style={{ color: '#444', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
           {expenses.length} expense{expenses.length !== 1 ? 's' : ''}
         </p>
         <button
           onClick={() => setShowAdd(true)}
           style={{
-            background: '#F5C518', border: 'none', borderRadius: '10px',
-            padding: '9px 16px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '10px',
+            padding: '9px 16px', color: '#fff', fontSize: '13px', fontWeight: 800,
+            cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
           }}
         >
           + Add Expense
@@ -156,11 +156,11 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
 
       {expenses.length === 0 ? (
         <div style={{
-          background: '#0D0D0D', border: '1px dashed #1A1A1A', borderRadius: '16px',
+          background: '#141414', border: '1px dashed rgba(255,255,255,0.07)', borderRadius: '16px',
           padding: '40px', textAlign: 'center',
         }}>
-          <p style={{ color: '#333', fontSize: '14px', fontWeight: 700, margin: '0 0 6px' }}>No expenses yet</p>
-          <p style={{ color: '#222', fontSize: '12px', margin: 0 }}>Add the first expense and split it with your group.</p>
+          <p style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 700, margin: '0 0 6px' }}>No expenses yet</p>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0 }}>Add the first expense and split it with your group.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -171,7 +171,7 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
               <div
                 key={exp.id}
                 style={{
-                  background: '#0D0D0D', border: '1px solid #161616',
+                  background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
                   borderRadius: '14px', padding: '16px',
                   display: 'flex', alignItems: 'center', gap: '14px',
                 }}
@@ -185,24 +185,24 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
                     {exp.description}
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ color: '#333', fontSize: '11px' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px' }}>
                       Paid by {payer ? emailLabel(payer.email) : 'someone'}
                     </span>
-                    <span style={{ color: '#1E1E1E', fontSize: '11px' }}>·</span>
-                    <span style={{ color: '#333', fontSize: '11px' }}>{catLabel(exp.category)}</span>
-                    <span style={{ color: '#1E1E1E', fontSize: '11px' }}>·</span>
-                    <span style={{ color: '#333', fontSize: '11px' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.07)', fontSize: '11px' }}>·</span>
+                    <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px' }}>{catLabel(exp.category)}</span>
+                    <span style={{ color: 'rgba(255,255,255,0.07)', fontSize: '11px' }}>·</span>
+                    <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px' }}>
                       {new Date(exp.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     </span>
                   </div>
                   {expSplits.length > 0 && (
-                    <p style={{ color: '#222', fontSize: '11px', margin: '4px 0 0' }}>
+                    <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: '4px 0 0' }}>
                       Split {expSplits.length} way{expSplits.length !== 1 ? 's' : ''} · {formatAmount(expSplits[0]?.amount ?? 0, trip.currency)} each
                     </p>
                   )}
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <p style={{ color: '#F5C518', fontSize: '17px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+                  <p style={{ color: '#F0F0F0', fontSize: '17px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
                     {formatAmount(exp.amount, trip.currency)}
                   </p>
                 </div>
@@ -223,14 +223,14 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
           onClick={e => { if (e.target === e.currentTarget) closeAdd() }}
         >
           <div style={{
-            background: '#111', border: '1px solid #1E1E1E', borderRadius: '24px',
+            background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '24px',
             padding: '28px', width: '100%', maxWidth: '440px',
             maxHeight: '90vh', overflowY: 'auto',
           }}>
-            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
               Add Expense
             </p>
-            <h2 style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 20px', fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
               What did you spend on?
             </h2>
 
@@ -265,11 +265,11 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
                       onClick={() => setForm(f => ({ ...f, category: cat.key }))}
                       style={{
                         background: form.category === cat.key ? cat.color : 'transparent',
-                        border: `1px solid ${form.category === cat.key ? cat.color : '#1E1E1E'}`,
+                        border: `1px solid ${form.category === cat.key ? cat.color : 'rgba(255,255,255,0.14)'}`,
                         borderRadius: '8px', padding: '7px 12px',
-                        color: form.category === cat.key ? '#0A0A0A' : '#555',
+                        color: form.category === cat.key ? '#0A0A0A' : 'rgba(255,255,255,0.38)',
                         fontSize: '12px', fontWeight: 700,
-                        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                        cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                         transition: 'all 0.15s',
                       }}
                     >
@@ -295,27 +295,27 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
               </div>
 
               <div style={{
-                background: '#0A0A0A', border: '1px solid #1A1A1A',
+                background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: '10px', padding: '12px 14px',
               }}>
-                <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0 }}>
                   Split equally among all {members.length} member{members.length !== 1 ? 's' : ''}
                   {form.amount ? ` · ${formatAmount(Math.round((parseFloat(form.amount) / members.length) * 100) / 100, trip.currency)} each` : ''}
                 </p>
               </div>
 
               {addError && (
-                <p style={{ color: '#FF3B30', fontSize: '13px', margin: 0 }}>{addError}</p>
+                <p style={{ color: '#FF1040', fontSize: '13px', margin: 0 }}>{addError}</p>
               )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   onClick={closeAdd}
                   style={{
-                    flex: 1, background: 'transparent', border: '1px solid #1E1E1E',
+                    flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
                     borderRadius: '12px', padding: '13px',
-                    color: '#444', fontSize: '14px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                    color: 'rgba(255,255,255,0.38)', fontSize: '14px', fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                   }}
                 >
                   Cancel
@@ -324,11 +324,11 @@ function ExpensesTab({ trip, expenses, members, splits, user, onAdd, onRefresh }
                   onClick={handleAdd}
                   disabled={adding}
                   style={{
-                    flex: 2, background: '#F5C518', border: 'none',
+                    flex: 2, background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none',
                     borderRadius: '12px', padding: '13px',
-                    color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
+                    color: '#fff', fontSize: '14px', fontWeight: 800,
                     cursor: adding ? 'not-allowed' : 'pointer',
-                    fontFamily: 'Inter, sans-serif', opacity: adding ? 0.7 : 1,
+                    fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', opacity: adding ? 0.7 : 1,
                   }}
                 >
                   {adding ? 'Adding...' : 'Add Expense'}
@@ -359,11 +359,11 @@ function SummaryTab({ trip, expenses, members, splits }) {
   if (expenses.length === 0) {
     return (
       <div style={{
-        background: '#0D0D0D', border: '1px dashed #1A1A1A', borderRadius: '16px',
+        background: '#141414', border: '1px dashed rgba(255,255,255,0.07)', borderRadius: '16px',
         padding: '40px', textAlign: 'center',
       }}>
-        <p style={{ color: '#333', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>No expenses yet</p>
-        <p style={{ color: '#222', fontSize: '12px', margin: 0 }}>Summary will appear once you add expenses.</p>
+        <p style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>No expenses yet</p>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0 }}>Summary will appear once you add expenses.</p>
       </div>
     )
   }
@@ -372,17 +372,17 @@ function SummaryTab({ trip, expenses, members, splits }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Total */}
       <div style={{
-        background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '22px',
+        background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '22px',
         textAlign: 'center',
       }}>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
           Total Spent
         </p>
-        <p style={{ color: '#F5C518', fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 900, margin: 0, letterSpacing: '-0.03em' }}>
+        <p style={{ color: '#F0F0F0', fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 900, margin: 0, letterSpacing: '-0.03em' }}>
           {formatAmount(total, trip.currency)}
         </p>
         {trip.budget && (
-          <p style={{ color: '#333', fontSize: '12px', margin: '6px 0 0' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: '6px 0 0' }}>
             of {formatAmount(trip.budget, trip.currency)} budget
             {' '}({Math.round((total / trip.budget) * 100)}%)
           </p>
@@ -391,8 +391,8 @@ function SummaryTab({ trip, expenses, members, splits }) {
 
       {/* Donut */}
       {donutData.length > 0 && (
-        <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '22px' }}>
-          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px' }}>
+        <div style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '22px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px' }}>
             By Category
           </p>
           <div style={{ position: 'relative' }}>
@@ -415,7 +415,7 @@ function SummaryTab({ trip, expenses, members, splits }) {
                 </Pie>
                 <Tooltip
                   formatter={(value, name) => [formatAmount(value, trip.currency), name]}
-                  contentStyle={{ background: '#111', border: '1px solid #222', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', fontSize: '12px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -423,21 +423,21 @@ function SummaryTab({ trip, expenses, members, splits }) {
               position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
               textAlign: 'center', pointerEvents: 'none',
             }}>
-              <p style={{ color: '#F5C518', fontSize: '18px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+              <p style={{ color: '#F0F0F0', fontSize: '18px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
                 {formatAmount(total, trip.currency)}
               </p>
-              <p style={{ color: '#333', fontSize: '10px', margin: 0 }}>total</p>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', margin: 0 }}>total</p>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
             {donutData.map(cat => (
               <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
-                <span style={{ color: '#888', fontSize: '12px', flex: 1 }}>{cat.label}</span>
+                <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', flex: 1 }}>{cat.label}</span>
                 <span style={{ color: '#F0F0F0', fontSize: '12px', fontWeight: 700 }}>
                   {formatAmount(cat.amount, trip.currency)}
                 </span>
-                <span style={{ color: '#333', fontSize: '11px', width: '36px', textAlign: 'right' }}>
+                <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', width: '36px', textAlign: 'right' }}>
                   {Math.round((cat.amount / total) * 100)}%
                 </span>
               </div>
@@ -447,8 +447,8 @@ function SummaryTab({ trip, expenses, members, splits }) {
       )}
 
       {/* Per person */}
-      <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '22px' }}>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px' }}>
+      <div style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '22px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px' }}>
           Per Person
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -456,9 +456,9 @@ function SummaryTab({ trip, expenses, members, splits }) {
             <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 width: 32, height: 32, borderRadius: '50%',
-                background: '#1A1A1A', border: '1px solid #252525',
+                background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.07)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#555', fontSize: '12px', fontWeight: 700, flexShrink: 0,
+                color: 'rgba(255,255,255,0.38)', fontSize: '12px', fontWeight: 700, flexShrink: 0,
               }}>
                 {(m.email?.[0] ?? '?').toUpperCase()}
               </div>
@@ -466,13 +466,13 @@ function SummaryTab({ trip, expenses, members, splits }) {
                 <p style={{ color: '#F0F0F0', fontSize: '13px', fontWeight: 700, margin: '0 0 2px' }}>
                   {emailLabel(m.email)}
                 </p>
-                <p style={{ color: '#333', fontSize: '11px', margin: 0 }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: 0 }}>
                   Paid {formatAmount(m.paid, trip.currency)} · Share {formatAmount(m.owes, trip.currency)}
                 </p>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={{
-                  color: m.net >= 0 ? '#30D158' : '#FF3B30',
+                  color: m.net >= 0 ? '#FF5500' : '#FF1040',
                   fontSize: '14px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em',
                 }}>
                   {m.net >= 0 ? '+' : ''}{formatAmount(m.net, trip.currency)}
@@ -515,11 +515,11 @@ function BalancesTab({ trip, expenses, members, splits, onRefresh }) {
   if (expenses.length === 0) {
     return (
       <div style={{
-        background: '#0D0D0D', border: '1px dashed #1A1A1A', borderRadius: '16px',
+        background: '#141414', border: '1px dashed rgba(255,255,255,0.07)', borderRadius: '16px',
         padding: '40px', textAlign: 'center',
       }}>
-        <p style={{ color: '#333', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>Nothing to settle</p>
-        <p style={{ color: '#222', fontSize: '12px', margin: 0 }}>Add expenses and balances will appear here.</p>
+        <p style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>Nothing to settle</p>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0 }}>Add expenses and balances will appear here.</p>
       </div>
     )
   }
@@ -527,18 +527,18 @@ function BalancesTab({ trip, expenses, members, splits, onRefresh }) {
   if (settlements.length === 0) {
     return (
       <div style={{
-        background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px',
+        background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px',
         padding: '40px', textAlign: 'center',
       }}>
-        <p style={{ color: '#30D158', fontSize: '24px', margin: '0 0 12px' }}>All squared up!</p>
-        <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>Everyone is settled. No outstanding balances.</p>
+        <p style={{ color: '#FF5500', fontSize: '24px', margin: '0 0 12px' }}>All squared up!</p>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: 0 }}>Everyone is settled. No outstanding balances.</p>
       </div>
     )
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <p style={{ color: '#444', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
+      <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
         {settlements.length} outstanding settlement{settlements.length !== 1 ? 's' : ''}
       </p>
       {settlements.map((s, i) => {
@@ -551,7 +551,7 @@ function BalancesTab({ trip, expenses, members, splits, onRefresh }) {
           <div
             key={i}
             style={{
-              background: '#0D0D0D', border: '1px solid #161616',
+              background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: '16px', padding: '18px',
               display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
             }}
@@ -561,12 +561,12 @@ function BalancesTab({ trip, expenses, members, splits, onRefresh }) {
                 <span style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 700 }}>
                   {emailLabel(from?.email)}
                 </span>
-                <span style={{ color: '#333', fontSize: '12px' }}>owes</span>
+                <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px' }}>owes</span>
                 <span style={{ color: '#F0F0F0', fontSize: '14px', fontWeight: 700 }}>
                   {emailLabel(to?.email)}
                 </span>
               </div>
-              <p style={{ color: '#FF3B30', fontSize: '20px', fontWeight: 900, margin: '4px 0 0', letterSpacing: '-0.02em' }}>
+              <p style={{ color: '#FF1040', fontSize: '20px', fontWeight: 900, margin: '4px 0 0', letterSpacing: '-0.02em' }}>
                 {formatAmount(s.amount, trip.currency)}
               </p>
             </div>
@@ -574,15 +574,15 @@ function BalancesTab({ trip, expenses, members, splits, onRefresh }) {
               onClick={() => markSettled(s)}
               disabled={!!isSettling}
               style={{
-                background: 'transparent', border: '1px solid #30D158',
+                background: 'transparent', border: '1px solid #FF5500',
                 borderRadius: '10px', padding: '9px 16px',
-                color: '#30D158', fontSize: '12px', fontWeight: 700,
+                color: '#FF5500', fontSize: '12px', fontWeight: 700,
                 cursor: isSettling ? 'not-allowed' : 'pointer',
-                fontFamily: 'Inter, sans-serif', flexShrink: 0,
+                fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', flexShrink: 0,
                 opacity: isSettling ? 0.5 : 1,
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => { if (!isSettling) e.currentTarget.style.background = 'rgba(48,209,88,0.08)' }}
+              onMouseEnter={e => { if (!isSettling) e.currentTarget.style.background = 'rgba(255,85,0,0.08)' }}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               {isSettling ? 'Settling...' : 'Mark Settled'}
@@ -616,8 +616,8 @@ function MembersTab({ trip, members, expenses, splits }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Members list */}
-      <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '22px' }}>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px' }}>
+      <div style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '22px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 16px' }}>
           {members.length} member{members.length !== 1 ? 's' : ''}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -625,9 +625,9 @@ function MembersTab({ trip, members, expenses, splits }) {
             <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: '#1A1A1A', border: '1px solid #252525',
+                background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.07)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#555', fontSize: '13px', fontWeight: 800, flexShrink: 0,
+                color: 'rgba(255,255,255,0.38)', fontSize: '13px', fontWeight: 800, flexShrink: 0,
               }}>
                 {(m.email?.[0] ?? '?').toUpperCase()}
               </div>
@@ -638,26 +638,26 @@ function MembersTab({ trip, members, expenses, splits }) {
                   </p>
                   {m.role === 'admin' && (
                     <span style={{
-                      background: 'rgba(245,197,24,0.08)', border: '1px solid rgba(245,197,24,0.2)',
-                      borderRadius: '4px', padding: '1px 6px', color: '#F5C518', fontSize: '9px', fontWeight: 800,
+                      background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.25)',
+                      borderRadius: '4px', padding: '1px 6px', color: '#FF5500', fontSize: '9px', fontWeight: 800,
                       letterSpacing: '0.1em',
                     }}>
                       ADMIN
                     </span>
                   )}
                 </div>
-                <p style={{ color: '#333', fontSize: '11px', margin: '2px 0 0' }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: '2px 0 0' }}>
                   Paid {formatAmount(m.paid, trip.currency)}
                 </p>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={{
-                  color: m.net >= 0 ? '#30D158' : '#FF3B30',
+                  color: m.net >= 0 ? '#FF5500' : '#FF1040',
                   fontSize: '14px', fontWeight: 900, margin: 0,
                 }}>
                   {m.net >= 0 ? '+' : ''}{formatAmount(m.net, trip.currency)}
                 </p>
-                <p style={{ color: '#333', fontSize: '10px', margin: '2px 0 0' }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', margin: '2px 0 0' }}>
                   {m.net >= 0 ? 'to receive' : 'to pay'}
                 </p>
               </div>
@@ -667,19 +667,19 @@ function MembersTab({ trip, members, expenses, splits }) {
       </div>
 
       {/* Invite section */}
-      <div style={{ background: '#0D0D0D', border: '1px solid #161616', borderRadius: '20px', padding: '22px' }}>
-        <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+      <div style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '22px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
           Invite to Trip
         </p>
-        <p style={{ color: '#333', fontSize: '13px', margin: '0 0 16px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: '0 0 16px' }}>
           Share this code with anyone you want to add.
         </p>
 
         <div style={{
-          background: '#0A0A0A', border: '1px solid #1E1E1E', borderRadius: '14px',
+          background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px',
           padding: '18px', textAlign: 'center', marginBottom: '14px',
         }}>
-          <p style={{ color: '#F5C518', fontSize: '32px', fontWeight: 900, letterSpacing: '0.28em', margin: 0 }}>
+          <p style={{ color: '#FF5500', fontSize: '32px', fontWeight: 900, letterSpacing: '0.28em', margin: 0 }}>
             {trip.invite_code}
           </p>
         </div>
@@ -688,11 +688,11 @@ function MembersTab({ trip, members, expenses, splits }) {
           <button
             onClick={copyCode}
             style={{
-              flex: 1, background: copied ? 'rgba(48,209,88,0.08)' : 'transparent',
-              border: `1px solid ${copied ? '#30D158' : '#1E1E1E'}`,
+              flex: 1, background: copied ? 'rgba(255,85,0,0.08)' : 'transparent',
+              border: `1px solid ${copied ? '#FF5500' : 'rgba(255,255,255,0.14)'}`,
               borderRadius: '10px', padding: '11px',
-              color: copied ? '#30D158' : '#555', fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+              color: copied ? '#FF5500' : 'rgba(255,255,255,0.38)', fontSize: '13px', fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', transition: 'all 0.15s',
             }}
           >
             {copied ? 'Copied!' : 'Copy Code'}
@@ -704,7 +704,7 @@ function MembersTab({ trip, members, expenses, splits }) {
               border: '1px solid rgba(37,211,102,0.2)',
               borderRadius: '10px', padding: '11px',
               color: '#25D366', fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
               transition: 'background 0.15s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(37,211,102,0.15)'}
@@ -760,7 +760,7 @@ export default function TripDetail() {
         alignItems: 'center', justifyContent: 'center',
         fontFamily: 'Inter, sans-serif',
       }}>
-        <p style={{ color: '#2A2A2A', fontSize: '13px' }}>Loading trip...</p>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px' }}>Loading trip...</p>
       </div>
     )
   }
@@ -772,13 +772,13 @@ export default function TripDetail() {
         alignItems: 'center', justifyContent: 'center', gap: '16px',
         fontFamily: 'Inter, sans-serif',
       }}>
-        <p style={{ color: '#333', fontSize: '16px', fontWeight: 700 }}>Trip not found</p>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '16px', fontWeight: 700 }}>Trip not found</p>
         <button
           onClick={() => navigate('/trips')}
           style={{
-            background: '#F5C518', border: 'none', borderRadius: '10px',
-            padding: '10px 20px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '10px',
+            padding: '10px 20px', color: '#fff', fontSize: '13px', fontWeight: 800,
+            cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
           }}
         >
           Back to Trips
@@ -808,26 +808,26 @@ export default function TripDetail() {
         <div>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
             <div>
-              <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
                 Group Trip
               </p>
-              <h1 style={{ fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1 }}>
+              <h1 style={{ fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1, fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
                 {trip.name}
               </h1>
               {trip.description && (
-                <p style={{ color: '#444', fontSize: '13px', margin: '6px 0 0', lineHeight: 1.4 }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: '6px 0 0', lineHeight: 1.4 }}>
                   {trip.description}
                 </p>
               )}
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               {trip.start_date && (
-                <p style={{ color: '#333', fontSize: '12px', margin: '0 0 4px' }}>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: '0 0 4px' }}>
                   {new Date(trip.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                   {trip.end_date && ` – ${new Date(trip.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                 </p>
               )}
-              <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0 }}>
                 {members.length} member{members.length !== 1 ? 's' : ''} · {trip.currency}
               </p>
             </div>

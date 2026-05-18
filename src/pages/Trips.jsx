@@ -19,14 +19,14 @@ function genCode() {
 }
 
 const INPUT_STYLE = {
-  width: '100%', background: '#0A0A0A', border: '1px solid #1E1E1E',
+  width: '100%', background: '#0A0A0A', border: '1px solid rgba(255,255,255,0.07)',
   borderRadius: '10px', padding: '11px 14px', color: '#F0F0F0',
-  fontSize: '14px', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box',
+  fontSize: '14px', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', boxSizing: 'border-box',
   outline: 'none',
 }
 
 const LABEL_STYLE = {
-  color: '#444', fontSize: '11px', fontWeight: 700,
+  color: 'rgba(255,255,255,0.38)', fontSize: '11px', fontWeight: 700,
   letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '6px',
 }
 
@@ -36,13 +36,13 @@ function TripCard({ trip, onClick }) {
     <button
       onClick={onClick}
       style={{
-        width: '100%', background: '#0D0D0D', border: '1px solid #161616',
+        width: '100%', background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
         borderRadius: '20px', padding: '20px', textAlign: 'left',
-        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
         transition: 'border-color 0.15s',
       }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = '#F5C518'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = '#161616'}
+      onMouseEnter={e => e.currentTarget.style.borderColor = '#FF5500'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -50,27 +50,27 @@ function TripCard({ trip, onClick }) {
             {trip.name}
           </p>
           {trip.description && (
-            <p style={{ color: '#444', fontSize: '12px', margin: '0 0 10px', lineHeight: 1.4 }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: '0 0 10px', lineHeight: 1.4 }}>
               {trip.description}
             </p>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{
-              background: '#111', border: '1px solid #1A1A1A', borderRadius: '6px',
-              padding: '3px 8px', color: '#555', fontSize: '11px', fontWeight: 600,
+              background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '6px',
+              padding: '3px 8px', color: 'rgba(255,255,255,0.38)', fontSize: '11px', fontWeight: 600,
             }}>
               {cur.symbol} {trip.currency}
             </span>
             {trip.myRole === 'admin' && (
               <span style={{
-                background: 'rgba(245,197,24,0.08)', border: '1px solid rgba(245,197,24,0.2)',
-                borderRadius: '6px', padding: '3px 8px', color: '#F5C518', fontSize: '11px', fontWeight: 700,
+                background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.25)',
+                borderRadius: '6px', padding: '3px 8px', color: '#FF5500', fontSize: '11px', fontWeight: 700,
               }}>
                 ADMIN
               </span>
             )}
             {trip.start_date && (
-              <span style={{ color: '#333', fontSize: '11px' }}>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px' }}>
                 {new Date(trip.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                 {trip.end_date && ` – ${new Date(trip.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
               </span>
@@ -79,8 +79,8 @@ function TripCard({ trip, onClick }) {
         </div>
         {trip.budget && (
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <p style={{ color: '#333', fontSize: '10px', margin: '0 0 2px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Budget</p>
-            <p style={{ color: '#F5C518', fontSize: '18px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', margin: '0 0 2px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Budget</p>
+            <p style={{ color: '#F0F0F0', fontSize: '18px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
               {formatAmount(trip.budget, trip.currency)}
             </p>
           </div>
@@ -226,10 +226,10 @@ export default function Trips() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px' }}>
               Split It
             </p>
-            <h1 style={{ fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1, fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
               Group Trips
             </h1>
           </div>
@@ -237,23 +237,22 @@ export default function Trips() {
             <button
               onClick={() => setShowJoin(true)}
               style={{
-                background: 'transparent', border: '1px solid #1E1E1E', borderRadius: '12px',
-                padding: '11px 18px', color: '#777', fontSize: '13px', fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '12px',
+                padding: '11px 18px', color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 transition: 'border-color 0.15s, color 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#F5C518'; e.currentTarget.style.color = '#F5C518' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1E1E1E'; e.currentTarget.style.color = '#777' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF5500'; e.currentTarget.style.color = '#FF5500' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
             >
               Join Trip
             </button>
             <button
               onClick={() => setShowCreate(true)}
               style={{
-                background: '#F5C518', border: 'none', borderRadius: '12px',
-                padding: '11px 18px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                boxShadow: '0 0 24px rgba(245,197,24,0.2)',
+                background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '12px',
+                padding: '11px 18px', color: '#fff', fontSize: '13px', fontWeight: 800,
+                cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 transition: 'opacity 0.15s',
               }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
@@ -267,25 +266,25 @@ export default function Trips() {
         {/* Trips list */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <p style={{ color: '#2A2A2A', fontSize: '13px', margin: 0 }}>Loading trips...</p>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: 0 }}>Loading trips...</p>
           </div>
         ) : trips.length === 0 ? (
           <div style={{
-            background: '#0D0D0D', border: '1px dashed #1A1A1A', borderRadius: '20px',
+            background: '#141414', border: '1px dashed rgba(255,255,255,0.07)', borderRadius: '20px',
             padding: '60px 24px', textAlign: 'center',
           }}>
-            <p style={{ color: '#252525', fontSize: '38px', margin: '0 0 16px' }}>✈</p>
-            <p style={{ color: '#333', fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>No trips yet</p>
-            <p style={{ color: '#222', fontSize: '13px', margin: '0 0 24px', lineHeight: 1.5 }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '38px', margin: '0 0 16px' }}>✈</p>
+            <p style={{ color: '#F0F0F0', fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>No trips yet</p>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: '0 0 24px', lineHeight: 1.5 }}>
               Create a trip and invite your group,<br />or join with an invite code.
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setShowCreate(true)}
                 style={{
-                  background: '#F5C518', border: 'none', borderRadius: '10px',
-                  padding: '10px 20px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                  background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '10px',
+                  padding: '10px 20px', color: '#fff', fontSize: '13px', fontWeight: 800,
+                  cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 }}
               >
                 Create Trip
@@ -293,9 +292,9 @@ export default function Trips() {
               <button
                 onClick={() => setShowJoin(true)}
                 style={{
-                  background: 'transparent', border: '1px solid #1E1E1E', borderRadius: '10px',
-                  padding: '10px 20px', color: '#555', fontSize: '13px', fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                  background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px',
+                  padding: '10px 20px', color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                 }}
               >
                 Join with Code
@@ -326,14 +325,14 @@ export default function Trips() {
           onClick={e => { if (e.target === e.currentTarget) closeCreate() }}
         >
           <div style={{
-            background: '#111', border: '1px solid #1E1E1E', borderRadius: '24px',
+            background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '24px',
             padding: '28px', width: '100%', maxWidth: '480px',
             maxHeight: '90vh', overflowY: 'auto',
           }}>
-            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
               New Trip
             </p>
-            <h2 style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 24px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 24px', fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
               Where are you going?
             </h2>
 
@@ -406,17 +405,17 @@ export default function Trips() {
               </div>
 
               {createError && (
-                <p style={{ color: '#FF3B30', fontSize: '13px', margin: 0 }}>{createError}</p>
+                <p style={{ color: '#FF1040', fontSize: '13px', margin: 0 }}>{createError}</p>
               )}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button
                   onClick={closeCreate}
                   style={{
-                    flex: 1, background: 'transparent', border: '1px solid #1E1E1E',
+                    flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
                     borderRadius: '12px', padding: '13px',
-                    color: '#444', fontSize: '14px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                    color: 'rgba(255,255,255,0.38)', fontSize: '14px', fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                   }}
                 >
                   Cancel
@@ -425,11 +424,11 @@ export default function Trips() {
                   onClick={handleCreate}
                   disabled={creating}
                   style={{
-                    flex: 2, background: '#F5C518', border: 'none',
+                    flex: 2, background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none',
                     borderRadius: '12px', padding: '13px',
-                    color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
+                    color: '#fff', fontSize: '14px', fontWeight: 800,
                     cursor: creating ? 'not-allowed' : 'pointer',
-                    fontFamily: 'Inter, sans-serif', opacity: creating ? 0.7 : 1,
+                    fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', opacity: creating ? 0.7 : 1,
                   }}
                 >
                   {creating ? 'Creating...' : 'Create Trip'}
@@ -451,16 +450,16 @@ export default function Trips() {
           onClick={e => { if (e.target === e.currentTarget) closeJoin() }}
         >
           <div style={{
-            background: '#111', border: '1px solid #1E1E1E', borderRadius: '24px',
+            background: '#141414', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '24px',
             padding: '28px', width: '100%', maxWidth: '400px',
           }}>
-            <p style={{ color: '#333', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 6px' }}>
               Join a Trip
             </p>
-            <h2 style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px', fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
               Enter invite code
             </h2>
-            <p style={{ color: '#333', fontSize: '13px', margin: '0 0 24px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: '0 0 24px' }}>
               Ask the trip organiser for their 6-character code.
             </p>
 
@@ -480,17 +479,17 @@ export default function Trips() {
               />
 
               {joinError && (
-                <p style={{ color: '#FF3B30', fontSize: '13px', margin: 0 }}>{joinError}</p>
+                <p style={{ color: '#FF1040', fontSize: '13px', margin: 0 }}>{joinError}</p>
               )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   onClick={closeJoin}
                   style={{
-                    flex: 1, background: 'transparent', border: '1px solid #1E1E1E',
+                    flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
                     borderRadius: '12px', padding: '13px',
-                    color: '#444', fontSize: '14px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                    color: 'rgba(255,255,255,0.38)', fontSize: '14px', fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
                   }}
                 >
                   Cancel
@@ -499,11 +498,11 @@ export default function Trips() {
                   onClick={handleJoin}
                   disabled={joining}
                   style={{
-                    flex: 2, background: '#F5C518', border: 'none',
+                    flex: 2, background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none',
                     borderRadius: '12px', padding: '13px',
-                    color: '#0A0A0A', fontSize: '14px', fontWeight: 800,
+                    color: '#fff', fontSize: '14px', fontWeight: 800,
                     cursor: joining ? 'not-allowed' : 'pointer',
-                    fontFamily: 'Inter, sans-serif', opacity: joining ? 0.7 : 1,
+                    fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', opacity: joining ? 0.7 : 1,
                   }}
                 >
                   {joining ? 'Joining...' : 'Join Trip'}
