@@ -918,8 +918,7 @@ export default function Dashboard() {
         borderBottomRightRadius: 36,
         overflow: 'hidden',
         position: 'relative',
-        paddingTop: 56,
-        paddingBottom: 24,
+        paddingBottom: 28,
       }}>
         {/* Ambient highlight */}
         <div style={{
@@ -929,9 +928,10 @@ export default function Dashboard() {
           pointerEvents: 'none',
         }} />
 
-        {/* Top bar */}
+        {/* Top bar — safe-area-aware top padding so greeting clears the status bar */}
         <div style={{
-          paddingTop: 60, paddingLeft: 24, paddingRight: 18,
+          paddingTop: 'max(60px, env(safe-area-inset-top))',
+          paddingLeft: 24, paddingRight: 18,
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
           position: 'relative', zIndex: 2,
         }}>
@@ -946,27 +946,34 @@ export default function Dashboard() {
           </div>
           {/* Two circle icon buttons */}
           <div style={{ display: 'flex', gap: 8 }}>
-            {/* 3x3 dot grid */}
-            <div style={{
-              width: 44, height: 44, background: '#fff',
-              border: '1px solid rgba(10,10,10,0.08)', borderRadius: '50%',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(10,10,10,0.04)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            {/* Grid — opens profile/settings */}
+            <button
+              onClick={() => navigate('/profile')}
+              style={{
+                width: 44, height: 44, background: '#fff',
+                border: '1px solid rgba(10,10,10,0.08)', borderRadius: '50%',
+                boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(10,10,10,0.04)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0,
+              }}
+            >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 {[0,1,2].map(row => [0,1,2].map(col => (
                   <circle key={`${row}-${col}`} cx={3 + col * 6} cy={3 + row * 6} r="1.5" fill="#0A0A0A" />
                 )))}
               </svg>
-            </div>
-            {/* Bell icon with red dot badge */}
-            <div style={{
-              width: 44, height: 44, background: '#fff',
-              border: '1px solid rgba(10,10,10,0.08)', borderRadius: '50%',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(10,10,10,0.04)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              position: 'relative',
-            }}>
+            </button>
+            {/* Bell — notifications placeholder */}
+            <button
+              onClick={() => alert('No new notifications')}
+              style={{
+                width: 44, height: 44, background: '#fff',
+                border: '1px solid rgba(10,10,10,0.08)', borderRadius: '50%',
+                boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(10,10,10,0.04)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0, position: 'relative',
+              }}
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -975,39 +982,41 @@ export default function Dashboard() {
                 position: 'absolute', top: 9, right: 9,
                 width: 7, height: 7, borderRadius: '50%',
                 background: '#FF1040', border: '1.5px solid #fff',
+                pointerEvents: 'none',
               }} />
-            </div>
+            </button>
           </div>
         </div>
 
-        {/* Score chip */}
-        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
+        {/* Score section — all centered in a column */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 14, position: 'relative', zIndex: 2 }}>
+          {/* Score chip */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 11px 5px 8px', borderRadius: 99, background: '#0d0d0d', color: '#fff', fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 10, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
             <span style={{ width: 16, height: 16, borderRadius: 4, background: '#FF5500', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#0d0d0d', fontWeight: 800, fontSize: 11, lineHeight: 1 }}>$</span>
             VRDIKT SCORE
           </div>
-        </div>
 
-        {/* Score number */}
-        <div style={{ position: 'relative', zIndex: 2, marginTop: 6, display: 'flex', alignItems: 'baseline', justifyContent: 'center', lineHeight: 0.9 }}>
-          <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 800, fontSize: 108, color: '#0A0A0A', letterSpacing: '-0.055em' }}>
-            {loading ? '—' : latestScore ?? '—'}
-          </span>
-          <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 500, fontSize: 32, color: '#6B6B70', letterSpacing: '-0.03em', marginLeft: 2, alignSelf: 'flex-end', paddingBottom: 14 }}>
-            /100
-          </span>
-        </div>
+          {/* Score number */}
+          <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', lineHeight: 0.9 }}>
+            <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 800, fontSize: 108, color: '#0A0A0A', letterSpacing: '-0.055em' }}>
+              {loading ? '—' : latestScore ?? '—'}
+            </span>
+            <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 500, fontSize: 32, color: '#6B6B70', letterSpacing: '-0.03em', marginLeft: 2, alignSelf: 'flex-end', paddingBottom: 14 }}>
+              /100
+            </span>
+          </div>
 
-        {/* Score underline bar */}
-        <div style={{ width: 200, height: 4, borderRadius: 99, background: 'rgba(10,10,10,0.08)', margin: '8px auto 0', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${latestScore ?? 0}%`, background: '#FF5500', borderRadius: 99 }} />
-        </div>
+          {/* Score underline bar */}
+          <div style={{ width: 200, height: 4, borderRadius: 99, background: 'rgba(10,10,10,0.08)', marginTop: 8, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${latestScore ?? 0}%`, background: '#FF5500', borderRadius: 99 }} />
+          </div>
 
-        {/* Tier badge */}
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 18, display: 'flex', justifyContent: 'center', zIndex: 3 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 99, background: 'rgba(255,16,64,0.12)', color: '#c20a30', fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 13, border: '1px solid rgba(255,16,64,0.2)' }}>
-            {tierLabel}
-          </span>
+          {/* Tier badge — in flow below progress bar */}
+          <div style={{ marginTop: 14 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 99, background: 'rgba(255,16,64,0.12)', color: '#c20a30', fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 13, border: '1px solid rgba(255,16,64,0.2)' }}>
+              {tierLabel}
+            </span>
+          </div>
         </div>
       </div>
 
