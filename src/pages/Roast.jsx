@@ -14,14 +14,14 @@ function sleep(ms) {
 // ─── sub-components ───────────────────────────────────────────────────────────
 
 function ScoreRing({ displayScore, finalScore }) {
-  const color = finalScore < 40 ? '#FF3B30' : finalScore > 70 ? '#30D158' : '#F5C518'
+  const color = '#FF1040'
   const r = 72
   const circ = 2 * Math.PI * r
   const offset = circ * (1 - displayScore / 100)
   return (
     <div style={{ position: 'relative', width: 184, height: 184 }}>
       <svg width="184" height="184" viewBox="0 0 184 184" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="92" cy="92" r={r} fill="none" stroke="#1A1A1A" strokeWidth="12" />
+        <circle cx="92" cy="92" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="12" />
         <circle
           cx="92" cy="92" r={r} fill="none"
           stroke={color} strokeWidth="12" strokeLinecap="round"
@@ -33,10 +33,10 @@ function ScoreRing({ displayScore, finalScore }) {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
       }}>
-        <span style={{ fontSize: 52, fontWeight: 900, color, lineHeight: 1, fontFamily: 'Inter, sans-serif' }}>
+        <span style={{ fontSize: 52, fontWeight: 900, color, lineHeight: 1, fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
           {displayScore}
         </span>
-        <span style={{ fontSize: 12, color: '#444', fontWeight: 600, letterSpacing: '0.05em', marginTop: 4 }}>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', fontWeight: 600, letterSpacing: '0.05em', marginTop: 4 }}>
           /100
         </span>
       </div>
@@ -47,7 +47,7 @@ function ScoreRing({ displayScore, finalScore }) {
 // ─── hidden share card (captured by html2canvas) ──────────────────────────────
 
 function ShareCard({ caseNo, score, personalityType, firstRoastLine, cardRef }) {
-  const scoreColor = score < 40 ? '#FF3B30' : score > 70 ? '#30D158' : '#F5C518'
+  const scoreColor = '#FF1040'
   const pct = score
 
   return (
@@ -73,12 +73,12 @@ function ShareCard({ caseNo, score, personalityType, firstRoastLine, cardRef }) 
             <span style={{ color: '#F0F0F0' }}>VRD</span>
             <span style={{ color: '#F5C518' }}>IKT</span>
           </span>
-          <span style={{ color: '#2A2A2A', fontSize: 12, fontWeight: 400 }}>vrdikt.vercel.app</span>
+          <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: 12, fontWeight: 400 }}>vrdikt.vercel.app</span>
         </div>
 
         {/* Case No. */}
         <p style={{
-          color: '#333', fontSize: 11, letterSpacing: '0.22em',
+          color: 'rgba(255,255,255,0.38)', fontSize: 11, letterSpacing: '0.22em',
           textTransform: 'uppercase', fontWeight: 600, margin: '0 0 10px',
         }}>
           CASE NO. {caseNo}
@@ -97,13 +97,13 @@ function ShareCard({ caseNo, score, personalityType, firstRoastLine, cardRef }) 
         </h1>
 
         {/* Divider */}
-        <div style={{ height: 1, background: '#1A1A1A', marginBottom: 24 }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 24 }} />
 
         {/* Spending personality */}
         {personalityType && (
           <div style={{ marginBottom: 24 }}>
             <p style={{
-              color: '#444', fontSize: 10, letterSpacing: '0.22em',
+              color: 'rgba(255,255,255,0.38)', fontSize: 10, letterSpacing: '0.22em',
               textTransform: 'uppercase', fontWeight: 700, margin: '0 0 8px',
             }}>
               SPENDING PERSONALITY
@@ -121,22 +121,22 @@ function ShareCard({ caseNo, score, personalityType, firstRoastLine, cardRef }) 
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
           <div style={{
             width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
-            background: `conic-gradient(${scoreColor} ${pct}%, #1C1C1C ${pct}%)`,
+            background: `conic-gradient(#FF1040 ${pct}%, rgba(255,255,255,0.07) ${pct}%)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <div style={{
               width: 64, height: 64, borderRadius: '50%', background: '#0A0A0A',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span style={{ color: scoreColor, fontSize: 22, fontWeight: 900, lineHeight: 1 }}>{score}</span>
-              <span style={{ color: '#444', fontSize: 9, fontWeight: 600 }}>/100</span>
+              <span style={{ color: '#FF1040', fontSize: 22, fontWeight: 900, lineHeight: 1 }}>{score}</span>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: 9, fontWeight: 600 }}>/100</span>
             </div>
           </div>
           <div>
-            <p style={{ color: '#333', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 4px' }}>
               VRDIKT SCORE
             </p>
-            <p style={{ color: scoreColor, fontSize: 14, fontWeight: 700, margin: 0 }}>
+            <p style={{ color: '#FF1040', fontSize: 14, fontWeight: 700, margin: 0 }}>
               {score < 30 ? 'Financially Ruined' :
                score < 50 ? 'Could Be Worse (Barely)' :
                score < 70 ? 'Room For Improvement' :
@@ -170,7 +170,7 @@ function ShareCard({ caseNo, score, personalityType, firstRoastLine, cardRef }) 
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         paddingBottom: 5,
       }}>
-        <p style={{ color: '#1E1E1E', fontSize: 11, fontWeight: 500, margin: 0, letterSpacing: '0.05em' }}>
+        <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 11, fontWeight: 500, margin: 0, letterSpacing: '0.05em' }}>
           vrdikt.vercel.app
         </p>
       </div>
@@ -337,7 +337,7 @@ export default function Roast() {
     a.click()
   }
 
-  const scoreColor = score < 40 ? '#FF3B30' : score > 70 ? '#30D158' : '#F5C518'
+  const scoreColor = '#FF1040'
 
   const fade = (visible, extra = {}) => ({
     opacity: visible ? 1 : 0,
@@ -383,7 +383,7 @@ export default function Roast() {
       {/* ── THE VERDICT IS IN ── */}
       <div style={{ textAlign: 'center', marginBottom: '52px', ...fade(showVerdict) }}>
         <p style={{
-          color: '#333', fontSize: '11px', letterSpacing: '0.24em',
+          color: 'rgba(255,255,255,0.38)', fontSize: '11px', letterSpacing: '0.24em',
           textTransform: 'uppercase', fontWeight: 600, margin: '0 0 14px',
         }}>
           CASE NO. {caseNoRef.current}
@@ -392,10 +392,10 @@ export default function Roast() {
           fontSize: 'clamp(30px, 7vw, 56px)',
           fontWeight: 900,
           letterSpacing: '-0.04em',
-          color: '#F5C518',
+          color: '#F0F0F0',
+          fontFamily: 'var(--font-display, Outfit), sans-serif',
           margin: 0,
           lineHeight: 1.05,
-          animation: showVerdict ? 'glow-gold 2.5s ease-in-out infinite' : undefined,
         }}>
           THE VERDICT IS IN
         </h1>
@@ -414,7 +414,7 @@ export default function Roast() {
             <p
               key={i}
               style={{
-                color: '#FF3B30',
+                color: '#FF1040',
                 fontSize: 'clamp(16px, 3.2vw, 21px)',
                 fontWeight: 600,
                 lineHeight: 1.55,
@@ -445,7 +445,7 @@ export default function Roast() {
           ...fade(showPersonality),
         }}>
           <p style={{
-            color: '#444', fontSize: '10px', letterSpacing: '0.24em',
+            color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.24em',
             textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px',
           }}>
             YOUR SPENDING PERSONALITY
@@ -470,7 +470,7 @@ export default function Roast() {
         ...fade(scoreStarted),
       }}>
         <p style={{
-          color: '#333', fontSize: '10px', letterSpacing: '0.24em',
+          color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.24em',
           textTransform: 'uppercase', fontWeight: 700, margin: 0,
         }}>
           VRDIKT SCORE
@@ -491,18 +491,18 @@ export default function Roast() {
       {savageInsight && (
         <div style={{
           maxWidth: 560, width: '100%',
-          background: '#0D0D0D', border: '1px solid #1A1A1A',
+          background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '16px', padding: '20px 24px',
           textAlign: 'center', marginBottom: '48px',
           ...fade(showInsight),
         }}>
           <p style={{
-            color: '#333', fontSize: '10px', letterSpacing: '0.22em',
+            color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.22em',
             textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px',
           }}>
             SAVAGE INSIGHT
           </p>
-          <p style={{ color: '#888', fontSize: 'clamp(14px, 2.5vw, 16px)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 'clamp(14px, 2.5vw, 16px)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
             "{savageInsight}"
           </p>
         </div>
@@ -519,12 +519,13 @@ export default function Roast() {
           onClick={handleShare}
           disabled={sharing}
           style={{
-            width: '100%', background: sharing ? '#1A1A1A' : '#F5C518',
+            width: '100%',
+            background: sharing ? '#1E1E1E' : 'linear-gradient(135deg,#FF5500,#FF1040)',
             border: 'none', borderRadius: '14px', padding: '16px 24px',
-            color: sharing ? '#444' : '#0A0A0A',
+            color: sharing ? 'rgba(255,255,255,0.38)' : '#fff',
             fontSize: '15px', fontWeight: 800,
             cursor: sharing ? 'default' : 'pointer',
-            fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em',
+            fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', letterSpacing: '-0.01em',
             transition: 'all 0.2s',
           }}
           onMouseEnter={e => { if (!sharing) e.currentTarget.style.opacity = '0.85' }}
@@ -544,7 +545,7 @@ export default function Roast() {
             width: '100%', background: 'transparent',
             border: '1px solid #25D366', borderRadius: '14px', padding: '15px 24px',
             color: '#25D366', fontSize: '15px', fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
             transition: 'background 0.2s, color 0.2s',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37,211,102,0.08)' }}
@@ -557,13 +558,13 @@ export default function Roast() {
           onClick={() => navigate('/upload')}
           style={{
             width: '100%', background: 'transparent',
-            border: '1px solid #1E1E1E', borderRadius: '14px', padding: '15px 24px',
-            color: '#555', fontSize: '15px', fontWeight: 500,
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            border: '1px solid rgba(255,255,255,0.14)', borderRadius: '14px', padding: '15px 24px',
+            color: 'rgba(255,255,255,0.6)', fontSize: '15px', fontWeight: 500,
+            cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
             transition: 'border-color 0.2s, color 0.2s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#F5C518'; e.currentTarget.style.color = '#F5C518' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#1E1E1E'; e.currentTarget.style.color = '#555' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF5500'; e.currentTarget.style.color = '#FF5500' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
         >
           Get Roasted Again 🔥
         </button>
@@ -572,12 +573,12 @@ export default function Roast() {
           onClick={() => navigate('/dashboard')}
           style={{
             background: 'transparent', border: 'none',
-            color: '#222', fontSize: '13px', cursor: 'pointer',
-            fontFamily: 'Inter, sans-serif', padding: '8px',
+            color: 'rgba(255,255,255,0.38)', fontSize: '13px', cursor: 'pointer',
+            fontFamily: 'var(--font-ui, Space Grotesk), sans-serif', padding: '8px',
             transition: 'color 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.color = '#555'}
-          onMouseLeave={e => e.currentTarget.style.color = '#222'}
+          onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.38)'}
         >
           Back to dashboard
         </button>
