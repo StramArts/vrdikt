@@ -109,51 +109,45 @@ export default function Profile() {
 
         {/* Header: name, email, member since */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 32px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1, color: '#F0F0F0' }}>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 32px)', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, lineHeight: 1.1, color: '#F0F0F0', fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
             {displayName}
           </h1>
           {user?.email && (
-            <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>{user.email}</p>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: 0 }}>{user.email}</p>
           )}
-          <p style={{ color: '#222', fontSize: '11px', margin: 0 }}>Member since {memberSince}</p>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '11px', margin: 0 }}>Member since {memberSince}</p>
         </div>
 
         {/* Section 1: Spending personality */}
         <div style={{
-          background: '#0D0D0D', border: '1px solid rgba(245,197,24,0.25)',
+          background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '24px', padding: '28px 24px',
           position: 'relative', overflow: 'hidden',
-          boxShadow: '0 0 40px rgba(245,197,24,0.05)',
         }}>
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse at top left, rgba(245,197,24,0.04) 0%, transparent 60%)',
-            pointerEvents: 'none',
-          }} />
           {loading ? (
-            <p style={{ color: '#333', fontSize: '14px', margin: 0 }}>Loading…</p>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '14px', margin: 0 }}>Loading…</p>
           ) : latestRoast ? (
             <>
-              <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 10px' }}>
                 Spending Personality
               </p>
-              <h2 style={{ color: '#F5C518', fontSize: 'clamp(22px, 5vw, 32px)', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px', lineHeight: 1.1 }}>
+              <h2 style={{ color: '#FFD000', fontSize: 'clamp(22px, 5vw, 32px)', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px', lineHeight: 1.1, fontFamily: 'var(--font-display, Outfit), sans-serif' }}>
                 {latestRoast.personality_type ?? '—'}
               </h2>
-              <p style={{ color: '#333', fontSize: '12px', margin: '0 0 12px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: '0 0 12px' }}>
                 Your financial identity as of {formatDate(latestRoast.created_at)}
               </p>
-              <p style={{ color: '#2A2A2A', fontSize: '12px', margin: 0, fontWeight: 600 }}>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '12px', margin: 0, fontWeight: 600 }}>
                 {xpData.levelName}
               </p>
             </>
           ) : (
             <>
-              <p style={{ color: '#555', fontSize: '15px', fontWeight: 700, margin: '0 0 14px' }}>No roasts yet.</p>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '15px', fontWeight: 700, margin: '0 0 14px' }}>No roasts yet.</p>
               <button onClick={() => navigate('/upload')} style={{
-                background: '#F5C518', border: 'none', borderRadius: '10px',
-                padding: '10px 20px', color: '#0A0A0A', fontSize: '13px', fontWeight: 800,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                background: 'linear-gradient(135deg,#FF5500,#FF1040)', border: 'none', borderRadius: '10px',
+                padding: '10px 20px', color: '#fff', fontSize: '13px', fontWeight: 800,
+                cursor: 'pointer', fontFamily: 'var(--font-ui, Space Grotesk), sans-serif',
               }}>Get Your First Roast →</button>
             </>
           )}
@@ -164,15 +158,15 @@ export default function Profile() {
           {[
             { label: 'Total Roasts', value: loading ? '—' : (roasts?.length ?? 0), accent: '#F0F0F0' },
             { label: 'Member Since', value: memberSince,                             accent: '#F0F0F0' },
-            { label: 'Best Score',   value: loading || bestScore  === null ? '—' : bestScore,  accent: '#30D158' },
-            { label: 'Worst Score',  value: loading || worstScore === null ? '—' : worstScore, accent: '#FF3B30' },
+            { label: 'Best Score',   value: loading || bestScore  === null ? '—' : bestScore,  accent: '#FF1040' },
+            { label: 'Worst Score',  value: loading || worstScore === null ? '—' : worstScore, accent: '#FF1040' },
           ].map(({ label, value, accent }) => (
             <div key={label} style={{
-              background: '#0D0D0D', border: '1px solid #161616',
+              background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: '16px', padding: '18px 16px',
               display: 'flex', flexDirection: 'column', gap: '4px',
             }}>
-              <span style={{ color: '#333', fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
+              <span style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
               <span style={{ color: accent, fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{value}</span>
             </div>
           ))}
@@ -180,14 +174,14 @@ export default function Profile() {
 
         {/* Section 3: Financial Character Arc */}
         <div style={{
-          background: '#0D0D0D', border: '1px solid #161616',
+          background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '20px', padding: '24px',
         }}>
-          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 18px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 18px' }}>
             Financial Character Arc
           </p>
           {personalities.length < 2 ? (
-            <p style={{ color: '#2A2A2A', fontSize: '13px', margin: 0 }}>
+            <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '13px', margin: 0 }}>
               Get more roasts to see your character arc.
             </p>
           ) : (
@@ -195,16 +189,16 @@ export default function Profile() {
               {personalities.map((p, i) => (
                 <div key={p.date + i} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '14px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: i === 0 ? '#F5C518' : '#2A2A2A', flexShrink: 0, marginTop: '5px' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: i === 0 ? '#FFD000' : 'rgba(255,255,255,0.07)', flexShrink: 0, marginTop: '5px' }} />
                     {i < personalities.length - 1 && (
-                      <div style={{ width: '1px', flex: 1, background: '#1A1A1A', minHeight: '22px' }} />
+                      <div style={{ width: '1px', flex: 1, background: 'rgba(255,255,255,0.07)', minHeight: '22px' }} />
                     )}
                   </div>
                   <div style={{ flex: 1, paddingBottom: i < personalities.length - 1 ? '14px' : '0' }}>
-                    <p style={{ color: i === 0 ? '#F5C518' : '#555', fontSize: '13px', fontWeight: 700, margin: '0 0 2px' }}>
+                    <p style={{ color: i === 0 ? '#FFD000' : 'rgba(255,255,255,0.38)', fontSize: '13px', fontWeight: 700, margin: '0 0 2px' }}>
                       {p.name}
                     </p>
-                    <p style={{ color: '#2A2A2A', fontSize: '10px', margin: 0 }}>{formatDate(p.date)}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', margin: 0 }}>{formatDate(p.date)}</p>
                   </div>
                 </div>
               ))}
@@ -214,14 +208,14 @@ export default function Profile() {
 
         {/* Section 4: Badges */}
         <div>
-          <p style={{ color: '#444', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, margin: '0 0 14px' }}>
             Badges
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
             {BADGES.map(b => (
               <div key={b.id} style={{
-                background: b.earned ? '#0D0D0D' : '#0A0A0A',
-                border: `1px solid ${b.earned ? 'rgba(245,197,24,0.2)' : '#141414'}`,
+                background: b.earned ? '#141414' : '#1E1E1E',
+                border: `1px solid ${b.earned ? 'rgba(255,208,0,0.2)' : 'rgba(255,255,255,0.07)'}`,
                 borderRadius: '14px', padding: '14px 16px',
                 display: 'flex', alignItems: 'center', gap: '12px',
                 opacity: b.earned ? 1 : 0.4,
@@ -230,11 +224,11 @@ export default function Profile() {
                   {b.earned ? b.emoji : '🔒'}
                 </span>
                 <div>
-                  <p style={{ color: b.earned ? '#E0E0E0' : '#333', fontSize: '12px', fontWeight: 700, margin: 0, lineHeight: 1.3 }}>
+                  <p style={{ color: b.earned ? '#F0F0F0' : 'rgba(255,255,255,0.38)', fontSize: '12px', fontWeight: 700, margin: 0, lineHeight: 1.3 }}>
                     {b.name}
                   </p>
                   {b.earned && (
-                    <p style={{ color: '#F5C518', fontSize: '9px', fontWeight: 700, margin: '3px 0 0', letterSpacing: '0.1em' }}>
+                    <p style={{ color: '#FFD000', fontSize: '9px', fontWeight: 700, margin: '3px 0 0', letterSpacing: '0.1em' }}>
                       EARNED
                     </p>
                   )}
