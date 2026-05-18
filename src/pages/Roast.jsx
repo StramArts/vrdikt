@@ -55,8 +55,8 @@ function FoilCard({ data = {}, cardRef, preview }) {
   return (
     <div ref={cardRef} style={{
       ...pos,
-      width: 320, minHeight: 480, borderRadius: 24, padding: 24,
-      overflow: 'hidden', fontFamily: 'Geist, system-ui, sans-serif', color: '#fff',
+      width: 390, minHeight: 600, borderRadius: 24, padding: 28,
+      overflow: 'visible', fontFamily: 'Geist, system-ui, sans-serif', color: '#fff',
       background: 'linear-gradient(165deg, #1a1305 0%, #0c0801 100%)',
       border: `1.5px solid ${a}88`,
       boxShadow: `0 0 0 1px ${a}44, 0 0 30px ${a}66`,
@@ -110,7 +110,7 @@ function ManifestoCard({ data = {}, cardRef, preview }) {
   return (
     <div ref={cardRef} style={{
       ...pos,
-      width:320, minHeight:480, borderRadius:6, overflow:'hidden',
+      width:390, minHeight:600, borderRadius:6, overflow:'visible',
       background:'#F4EDE0', color:'#0a0a0a',
       fontFamily:'Geist,system-ui,sans-serif',
       boxShadow:'0 30px 60px -16px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(10,10,10,0.08)',
@@ -160,9 +160,9 @@ function ReceiptCard({ data = {}, cardRef, preview }) {
   return (
     <div ref={cardRef} style={{
       ...pos,
-      width:280, minHeight:520, fontFamily:'Geist Mono,ui-monospace,monospace', color:'#0a0a0a',
+      width:390, minHeight:600, fontFamily:'Geist Mono,ui-monospace,monospace', color:'#0a0a0a',
       filter:'drop-shadow(0 30px 60px rgba(0,0,0,0.45))',
-      boxSizing:'border-box', overflow:'hidden',
+      boxSizing:'border-box', overflow:'visible',
     }}>
       <div style={{ background:'#FAFAF6', padding:'20px 20px', boxSizing:'border-box' }}>
         <div style={{ textAlign:'center' }}>
@@ -223,7 +223,7 @@ function StickerCard({ data = {}, cardRef, preview }) {
   return (
     <div ref={cardRef} style={{
       ...pos,
-      width:320, minHeight:480, borderRadius:24, overflow:'hidden',
+      width:390, minHeight:600, borderRadius:24, overflow:'visible',
       background:'#FF5500', fontFamily:'Geist,system-ui,sans-serif', color:'#0a0a0a',
       boxShadow:'0 30px 60px -16px rgba(255,85,0,0.55)',
       boxSizing:'border-box', display:'flex', flexDirection:'column',
@@ -289,8 +289,8 @@ function QuoteCard({ n, text, visible }) {
 
 // ─── Scaled-down card thumbnail for the picker ─────────────────
 function CardPreview({ id, data, isSelected, accent, onSelect }) {
-  const CARD_W = id === 'receipt' ? 280 : 320
-  const CARD_H = id === 'receipt' ? 520 : 480
+  const CARD_W = 390
+  const CARD_H = 600
   const THUMB_W = isSelected ? 200 : 140
   const scale = THUMB_W / CARD_W
   const THUMB_H = Math.round(CARD_H * scale)
@@ -459,7 +459,9 @@ export default function Roast() {
   }, [showActions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── share handler ────────────────────────────────────────────────────────────
-  async function handleShare() {
+  async function handleShare(e) {
+    e?.stopPropagation()
+    if (sharing) return
     const refMap = { foil: foilRef, manifesto: manifestoRef, receipt: receiptRef, sticker: stickerRef }
     const ref = refMap[selectedCard]
     if (!ref?.current) return
