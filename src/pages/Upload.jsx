@@ -180,260 +180,157 @@ export default function Upload() {
 
   return (
     <>
+      {/* ── ANALYZING STATE ── */}
       {isLoading && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 100,
-          background: 'rgba(10,10,10,0.97)',
+          background: '#0A0A0A',
           display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: '24px',
+          alignItems: 'center', justifyContent: 'center',
         }}>
+          {/* Red ambient glow */}
           <div style={{
-            width: '48px', height: '48px',
-            border: '3px solid #1A1A1A',
-            borderTopColor: '#F5C518',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
+            position: 'absolute', left: '50%', top: '50%',
+            width: 480, height: 480,
+            transform: 'translate(-50%, -50%)',
+            background: 'radial-gradient(circle, rgba(255,16,64,0.18) 0%, transparent 70%)',
+            pointerEvents: 'none',
           }} />
-          <p style={{
-            color: '#F5C518', fontSize: '16px', fontWeight: 500,
-            fontFamily: 'Inter, sans-serif', margin: 0,
-          }}>
-            {LOADING_MSGS[loadingMsgIdx]}
-          </p>
-          <p style={{
-            color: '#333', fontSize: '13px',
-            fontFamily: 'Inter, sans-serif', margin: 0,
-          }}>
-            This usually takes 5–10 seconds
-          </p>
+          <div style={{ position: 'relative', textAlign: 'center' }}>
+            <span style={{
+              fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: 24,
+              textTransform: 'uppercase', letterSpacing: '0.12em', color: '#F0F0F0',
+            }}>
+              TAMAS IS ANALYZING
+            </span>
+            <span style={{
+              fontFamily: 'Outfit, monospace', fontWeight: 700, fontSize: 24,
+              color: '#F0F0F0', animation: 'blink 1s step-end infinite',
+            }}>_</span>
+          </div>
         </div>
       )}
 
+      {/* ── INPUT STATE ── */}
       <div style={{
         minHeight: '100svh', background: '#0A0A0A',
-        fontFamily: 'Inter, sans-serif', color: '#F0F0F0',
+        fontFamily: 'Outfit, sans-serif', color: '#F0F0F0',
         display: 'flex', flexDirection: 'column',
       }}>
-        {/* Nav */}
-        <nav style={{
+        {/* Top nav */}
+        <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 24px', borderBottom: '1px solid #111111',
+          paddingTop: 'max(20px, env(safe-area-inset-top))',
+          paddingLeft: 24, paddingRight: 24, paddingBottom: 16,
         }}>
           <button
             onClick={() => navigate('/dashboard')}
             style={{
-              background: 'transparent', border: 'none',
-              color: '#6B6B6B', fontSize: '13px', cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', padding: 0,
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = '#F0F0F0'}
-            onMouseLeave={e => e.currentTarget.style.color = '#6B6B6B'}
-          >
-            ← Dashboard
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            style={{
               background: 'transparent', border: 'none', padding: 0,
-              cursor: 'pointer', fontSize: '18px', fontWeight: 900,
-              letterSpacing: '-0.04em', fontFamily: 'Inter, sans-serif',
-              transition: 'opacity 0.15s',
+              color: 'rgba(240,240,240,0.45)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
-            <span style={{ color: '#F0F0F0' }}>VRD</span><span style={{ color: '#F5C518' }}>IKT</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M11 18l-6-6 6-6"/>
+            </svg>
           </button>
-          <div style={{ width: '80px' }} />
-        </nav>
+          <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.04em' }}>
+            <span style={{ color: '#F0F0F0' }}>VRD</span>
+            <span style={{ color: '#F5C518' }}>IKT</span>
+          </span>
+          <div style={{ width: 20 }} />
+        </div>
 
-        {/* Main */}
+        {/* Content */}
         <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', padding: '48px 24px 64px',
+          flex: 1, padding: '24px 24px 40px',
+          maxWidth: 600, margin: '0 auto', width: '100%',
+          display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
         }}>
-          {/* Title */}
-          <div style={{ textAlign: 'center', marginBottom: '40px', animation: 'fade-in 0.6s ease forwards' }}>
-            <h1 style={{
-              fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 900,
-              letterSpacing: '-0.04em', margin: '0 0 12px', lineHeight: 1.1,
+          {/* Headline */}
+          <h1 style={{
+            fontFamily: 'Outfit, sans-serif', fontWeight: 800,
+            fontSize: 'clamp(32px, 9vw, 48px)',
+            color: '#F0F0F0', margin: '0 0 8px',
+            letterSpacing: '-0.03em', lineHeight: 1.08,
+          }}>
+            Paste your expenses.
+          </h1>
+          <p style={{
+            color: 'rgba(240,240,240,0.38)', fontSize: 16,
+            margin: '0 0 24px', fontWeight: 400,
+          }}>
+            Tamas is watching.
+          </p>
+
+          {/* Auto-tracked banner */}
+          {autoTxData && (
+            <div style={{
+              background: 'rgba(255,85,0,0.06)', border: '1px solid rgba(255,85,0,0.18)',
+              borderRadius: 10, padding: '10px 14px', marginBottom: 16,
+              display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              Face the music 🔥
-            </h1>
-            <p style={{ color: '#6B6B6B', fontSize: '16px', margin: 0 }}>
-              Paste your bank statement and get brutally roasted by AI
+              <p style={{ color: '#FF5500', fontSize: 12, fontWeight: 600, margin: 0 }}>
+                ⚡ {autoTxData.count} auto-tracked transactions loaded into your roast.
+              </p>
+            </div>
+          )}
+
+          {/* Textarea */}
+          <textarea
+            value={text}
+            onChange={e => { setText(e.target.value); setError('') }}
+            placeholder={PLACEHOLDER}
+            style={{
+              flex: 1, minHeight: 200, width: '100%',
+              background: '#141414', border: 'none',
+              borderLeft: '2px solid #FF5500',
+              borderRadius: '0 8px 8px 0',
+              color: '#F0F0F0', fontSize: 13,
+              fontFamily: '"Geist Mono", "Courier New", monospace',
+              lineHeight: 1.7, resize: 'vertical', outline: 'none',
+              padding: 16, boxSizing: 'border-box',
+            }}
+          />
+
+          {/* Error */}
+          {error && (
+            <p style={{
+              color: '#FF1040', fontSize: 13, margin: '10px 0 0',
+              fontFamily: 'Outfit, sans-serif',
+            }}>
+              {error}
             </p>
-          </div>
+          )}
 
-          {/* Card */}
-          <div style={{
-            width: '100%', maxWidth: '600px',
-            background: '#111111', border: '1px solid #1A1A1A',
-            borderRadius: '20px', overflow: 'hidden',
-            animation: 'slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both',
-          }}>
-            {/* Tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid #1A1A1A' }}>
-              {[
-                { id: 'paste', label: '📋 Paste Transactions' },
-                { id: 'pdf',   label: '📄 Upload PDF' },
-              ].map(({ id, label }) => (
-                <button
-                  key={id}
-                  onClick={() => { setTab(id); setError('') }}
-                  style={{
-                    flex: 1, padding: '16px 12px',
-                    background: 'transparent', border: 'none',
-                    borderBottom: tab === id ? '2px solid #F5C518' : '2px solid transparent',
-                    color: tab === id ? '#F5C518' : '#6B6B6B',
-                    fontSize: '14px', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                    transition: 'color 0.2s, border-color 0.2s',
-                    marginBottom: '-1px',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          {/* Hidden PDF input (kept for legacy logic) */}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf"
+            style={{ display: 'none' }}
+            onChange={e => { if (e.target.files[0]) { setPdfFile(e.target.files[0]); setError('') } }}
+          />
 
-            <div style={{ padding: '24px' }}>
-              {/* Auto-tracked banner */}
-              {tab === 'paste' && autoTxData && (
-                <div style={{
-                  background: 'rgba(48,209,88,0.06)', border: '1px solid rgba(48,209,88,0.2)',
-                  borderRadius: '10px', padding: '10px 14px', marginBottom: '14px',
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                }}>
-                  <span style={{ fontSize: '13px' }}>✅</span>
-                  <p style={{ color: '#30D158', fontSize: '12px', fontWeight: 600, margin: 0 }}>
-                    We found {autoTxData.count} auto-tracked transactions. Your roast will use this data + anything you add below.
-                  </p>
-                </div>
-              )}
-
-              {/* Paste tab */}
-              {tab === 'paste' && (
-                <textarea
-                  value={text}
-                  onChange={e => { setText(e.target.value); setError('') }}
-                  placeholder={PLACEHOLDER}
-                  style={{
-                    width: '100%', minHeight: '260px',
-                    background: '#0A0A0A',
-                    border: '1px solid #1A1A1A',
-                    borderRadius: '12px', padding: '16px',
-                    color: '#F0F0F0', fontSize: '13px',
-                    fontFamily: 'Monaco, "Courier New", monospace',
-                    lineHeight: 1.7, resize: 'vertical',
-                    outline: 'none', boxSizing: 'border-box',
-                    transition: 'border-color 0.2s',
-                  }}
-                  onFocus={e => e.target.style.borderColor = '#F5C518'}
-                  onBlur={e => e.target.style.borderColor = '#1A1A1A'}
-                />
-              )}
-
-              {/* PDF tab */}
-              {tab === 'pdf' && (
-                <div
-                  onClick={() => fileRef.current?.click()}
-                  onDragOver={handleDragOver}
-                  onDragEnter={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  style={{
-                    minHeight: '220px', borderRadius: '12px',
-                    border: `2px dashed ${isDragging ? '#F5C518' : pdfFile ? 'rgba(245,197,24,0.4)' : '#2A2A2A'}`,
-                    background: isDragging ? 'rgba(245,197,24,0.03)' : 'transparent',
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center',
-                    gap: '12px', cursor: 'pointer', padding: '40px 24px',
-                    transition: 'border-color 0.2s, background 0.2s',
-                  }}
-                >
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept=".pdf"
-                    style={{ display: 'none' }}
-                    onChange={e => { if (e.target.files[0]) { setPdfFile(e.target.files[0]); setError('') } }}
-                  />
-                  {pdfFile ? (
-                    <>
-                      <span style={{ fontSize: '36px' }}>📄</span>
-                      <p style={{ color: '#F5C518', fontWeight: 600, margin: 0, textAlign: 'center', fontSize: '14px' }}>
-                        {pdfFile.name}
-                      </p>
-                      <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>Click to change file</p>
-                    </>
-                  ) : (
-                    <>
-                      <span style={{ fontSize: '40px' }}>📂</span>
-                      <p style={{ color: '#6B6B6B', fontWeight: 500, margin: 0, textAlign: 'center', fontSize: '15px' }}>
-                        Drop your bank statement PDF here
-                      </p>
-                      <p style={{ color: '#333', fontSize: '13px', margin: 0 }}>or click to browse</p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <p style={{
-                  color: '#FF3B30', fontSize: '13px', margin: '12px 0 0',
-                  animation: 'slide-down 0.2s ease',
-                }}>
-                  {error}
-                </p>
-              )}
-
-              {/* Submit */}
-              <button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                style={{
-                  width: '100%', marginTop: '20px',
-                  background: '#F5C518', border: 'none',
-                  borderRadius: '12px', padding: '16px 24px',
-                  color: '#0A0A0A', fontSize: '16px', fontWeight: 800,
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em',
-                  opacity: isLoading ? 0.5 : 1,
-                  transition: 'opacity 0.15s, transform 0.1s',
-                }}
-                onMouseEnter={e => { if (!isLoading) e.currentTarget.style.opacity = '0.85' }}
-                onMouseLeave={e => { if (!isLoading) e.currentTarget.style.opacity = '1' }}
-                onMouseDown={e => { if (!isLoading) e.currentTarget.style.transform = 'scale(0.98)' }}
-                onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
-              >
-                Get Roasted 🔥
-              </button>
-            </div>
-          </div>
-
-          {/* Trust badges */}
-          <div style={{
-            display: 'flex', gap: '28px', marginTop: '28px',
-            flexWrap: 'wrap', justifyContent: 'center',
-            animation: 'fade-in 0.6s ease 0.4s both',
-          }}>
-            {[
-              { icon: '🔒', label: 'Private & Secure' },
-              { icon: '🔥', label: 'Brutally Honest' },
-              { icon: '⚡', label: 'AI-Powered' },
-            ].map(({ icon, label }) => (
-              <div key={label} style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                color: '#3A3A3A', fontSize: '12px', fontWeight: 500,
-              }}>
-                <span>{icon}</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            style={{
+              width: '100%', height: 56, marginTop: 20,
+              background: isLoading ? '#1A1A1A' : 'linear-gradient(135deg, #FF5500, #FF1040)',
+              border: 'none', borderRadius: 16,
+              color: isLoading ? 'rgba(255,255,255,0.3)' : '#fff',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: 16,
+              textTransform: 'uppercase', letterSpacing: '0.06em',
+              cursor: isLoading ? 'default' : 'pointer',
+              transition: 'opacity 0.15s',
+              boxShadow: isLoading ? 'none' : '0 8px 32px -8px rgba(255,85,0,0.5)',
+            }}
+          >
+            GET ROASTED →
+          </button>
         </div>
       </div>
     </>
