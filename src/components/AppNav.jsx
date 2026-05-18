@@ -87,54 +87,58 @@ export default function AppNav({ loggedIn = true, showDashboardBtn = true, user 
 
   const menuItems = loggedIn ? loggedInMenu : loggedOutMenu
 
-  // On mobile, render a bottom tab bar instead of the top hamburger nav
+  // On mobile, render a floating pill nav
   if (isMobile && loggedIn) {
     const TABS = [
-      { label: 'Home',      path: '/dashboard', icon: '⊞' },
-      { label: 'Trips',     path: '/trips',     icon: '✈' },
-      { label: 'Upload',    path: '/upload',    icon: '＋' },
-      { label: 'Challenges',path: '/challenge', icon: '⚡' },
-      { label: 'Profile',   path: '/profile',   icon: '◎' },
+      { label: 'Home',       path: '/dashboard' },
+      { label: 'Challenges', path: '/challenge' },
+      { label: 'Roast',      path: '/upload',   special: true },
+      { label: 'Trips',      path: '/trips' },
+      { label: 'You',        path: '/profile' },
     ]
     const current = typeof window !== 'undefined' ? window.location.pathname : ''
 
     return (
       <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-        background: 'var(--bg-card)',
-        borderTop: '1px solid var(--border)',
-        padding: '10px 0 28px',
-        display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start',
+        position: 'fixed', bottom: 18, left: 12, right: 12, zIndex: 100,
+        padding: '10px 14px',
+        borderRadius: 28,
+        background: 'rgba(20,20,22,0.88)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: '0 10px 30px -10px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05) inset',
         WebkitTapHighlightColor: 'transparent',
       }}>
-        {TABS.map(({ label, path, icon }) => {
+        {TABS.map(({ label, path, special }) => {
           const active = current === path || (path === '/dashboard' && current === '/')
-          return (
-            <button
-              key={path}
-              onClick={() => navigate(path)}
-              style={{
-                background: 'transparent', border: 'none',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                cursor: 'pointer', padding: '0 8px', minWidth: 52,
-              }}
-            >
-              {/* Active indicator bar */}
+          if (special) return (
+            <button key={path} onClick={() => navigate(path)} style={{ appearance: 'none', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}>
               <div style={{
-                width: 18, height: 2, borderRadius: 1,
-                background: active
-                  ? 'linear-gradient(90deg, #FF5500, #FF1040)'
-                  : 'transparent',
-                marginBottom: 2,
-                transition: 'background 0.2s',
-              }} />
-              <span style={{ fontSize: 18, lineHeight: 1 }}>{icon}</span>
-              <span style={{
-                fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 10,
-                letterSpacing: '0.05em', textTransform: 'uppercase',
-                color: active ? 'var(--orange)' : 'var(--text-muted)',
-                transition: 'color 0.2s',
-              }}>{label}</span>
+                width: 44, height: 44, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FF5500, #FF1040)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 8px 16px -4px rgba(255,85,0,0.53), 0 0 24px rgba(255,85,0,0.33)',
+                marginTop: -4,
+              }}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff" stroke="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+              </div>
+            </button>
+          )
+          return (
+            <button key={path} onClick={() => navigate(path)} style={{ appearance: 'none', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}>
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                padding: '4px 10px',
+                color: active ? '#FF5500' : 'rgba(250,250,248,0.55)',
+              }}>
+                {label === 'Home' && <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 9-8 9 8M5 9v12h14V9"/></svg>}
+                {label === 'Challenges' && <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>}
+                {label === 'Trips' && <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.5C22 19 20 21 17.5 21S13 19 13 16.5c0-3.5 4.5-9 4.5-9S22 13 22 16.5ZM5.5 3 2 7.5l7 4-2 3h5l3-7-4.5-1L5.5 3Z"/></svg>}
+                {label === 'You' && <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}
+                <span style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>{label}</span>
+              </div>
             </button>
           )
         })}

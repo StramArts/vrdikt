@@ -906,281 +906,324 @@ export default function Dashboard() {
 
     {/* Full-screen column */}
     <div style={{
-      minHeight: '100svh', background: 'var(--bg-base)',
-      color: 'var(--text-primary)', display: 'flex', flexDirection: 'column',
+      minHeight: '100svh', background: '#1B1B1D',
+      color: '#0A0A0A', display: 'flex', flexDirection: 'column',
+      fontFamily: 'Geist, system-ui, sans-serif',
     }}>
 
-      {/* ── TOP HERO PANEL ── */}
+      {/* ── ZONE 1: HERO (peach pastel) ── */}
       <div style={{
-        background: 'linear-gradient(180deg, #0D0D0D 0%, #080808 100%)',
-        minHeight: '42vh',
-        position: 'relative', overflow: 'hidden',
-        padding: '52px 24px 36px', display: 'flex', flexDirection: 'column',
-        justifyContent: 'flex-end', gap: '6px',
-        borderBottom: '1px solid rgba(255,85,0,0.2)',
+        background: '#FFE7D4',
+        borderBottomLeftRadius: 36,
+        borderBottomRightRadius: 36,
+        overflow: 'hidden',
+        position: 'relative',
+        paddingTop: 56,
+        paddingBottom: 24,
       }}>
-        {/* Ambient glow */}
+        {/* Ambient highlight */}
         <div style={{
-          position: 'absolute', top: 0, right: 0,
-          width: 300, height: 300,
-          background: 'radial-gradient(circle, rgba(255,85,0,0.14) 0%, transparent 70%)',
+          position: 'absolute', top: -120, right: -120,
+          width: 360, height: 360,
+          background: 'radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%)',
           pointerEvents: 'none',
         }} />
 
-        {/* Welcome label */}
-        <p style={{
-          fontFamily: 'var(--font-ui)', fontSize: 11, letterSpacing: '0.10em',
-          color: 'var(--text-muted)', textTransform: 'uppercase', margin: 0,
-        }}>Welcome Back</p>
-
-        {/* User name */}
-        <h1 style={{
-          fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 34,
-          color: 'var(--text-primary)', margin: 0, lineHeight: 1.1,
-          textTransform: 'capitalize',
+        {/* Top bar */}
+        <div style={{
+          paddingTop: 60, paddingLeft: 24, paddingRight: 18,
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          position: 'relative', zIndex: 2,
         }}>
-          {(profile?.full_name && profile.full_name.trim()) ? profile.full_name : (user?.email?.split('@')[0] ?? 'Hey')}
-        </h1>
-
-        {/* Score row */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 900, fontStyle: 'normal',
-            fontSize: '72px', lineHeight: 1, color: 'var(--text-primary)',
-          }}>
-            {loading ? '—' : latestScore ?? '—'}
-          </span>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 26,
-            color: 'var(--text-muted)',
-          }}>/100</span>
+          {/* Greeting block */}
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#0A0A0A' }}>
+              Hi {(profile?.full_name && profile.full_name.trim()) ? profile.full_name.split(' ')[0] : (user?.email?.split('@')[0] ?? 'there')}!
+            </div>
+            <div style={{ fontSize: 15, color: '#6B6B70', fontWeight: 500 }}>
+              {new Date().toLocaleString('default', { month: 'long' })} session.
+            </div>
+          </div>
+          {/* Two circle icon buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {/* 3x3 dot grid */}
+            <div style={{
+              width: 44, height: 44, background: '#fff',
+              border: '1px solid rgba(10,10,10,0.08)', borderRadius: '50%',
+              boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(10,10,10,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                {[0,1,2].map(row => [0,1,2].map(col => (
+                  <circle key={`${row}-${col}`} cx={3 + col * 6} cy={3 + row * 6} r="1.5" fill="#0A0A0A" />
+                )))}
+              </svg>
+            </div>
+            {/* Bell icon with red dot badge */}
+            <div style={{
+              width: 44, height: 44, background: '#fff',
+              border: '1px solid rgba(10,10,10,0.08)', borderRadius: '50%',
+              boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(10,10,10,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              <div style={{
+                position: 'absolute', top: 9, right: 9,
+                width: 7, height: 7, borderRadius: '50%',
+                background: '#FF1040', border: '1.5px solid #fff',
+              }} />
+            </div>
+          </div>
         </div>
 
-        {/* Tier label */}
-        <p style={{
-          fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 11,
-          letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: 'var(--orange)', margin: 0,
-        }}>{tierLabel}</p>
+        {/* Score chip */}
+        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 11px 5px 8px', borderRadius: 99, background: '#0d0d0d', color: '#fff', fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 10, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+            <span style={{ width: 16, height: 16, borderRadius: 4, background: '#FF5500', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#0d0d0d', fontWeight: 800, fontSize: 11, lineHeight: 1 }}>$</span>
+            VRDIKT SCORE
+          </div>
+        </div>
 
-        {/* Score progress bar */}
-        <div style={{
-          height: 4, borderRadius: 2, marginTop: 12,
-          background: '#1a1a1a', overflow: 'hidden', position: 'relative',
-        }}>
-          <div style={{
-            height: '100%',
-            width: `${latestScore ?? 0}%`,
-            background: 'linear-gradient(90deg, #FF5500, #FF1040)',
-            boxShadow: '0 0 10px rgba(255,85,0,0.5)',
-            borderRadius: 2,
-            transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
-          }} />
+        {/* Score number */}
+        <div style={{ position: 'relative', zIndex: 2, marginTop: 6, display: 'flex', alignItems: 'baseline', justifyContent: 'center', lineHeight: 0.9 }}>
+          <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 800, fontSize: 108, color: '#0A0A0A', letterSpacing: '-0.055em' }}>
+            {loading ? '—' : latestScore ?? '—'}
+          </span>
+          <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 500, fontSize: 32, color: '#6B6B70', letterSpacing: '-0.03em', marginLeft: 2, alignSelf: 'flex-end', paddingBottom: 14 }}>
+            /100
+          </span>
+        </div>
+
+        {/* Score underline bar */}
+        <div style={{ width: 200, height: 4, borderRadius: 99, background: 'rgba(10,10,10,0.08)', margin: '8px auto 0', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${latestScore ?? 0}%`, background: '#FF5500', borderRadius: 99 }} />
+        </div>
+
+        {/* Tier badge */}
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 18, display: 'flex', justifyContent: 'center', zIndex: 3 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 99, background: 'rgba(255,16,64,0.12)', color: '#c20a30', fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 13, border: '1px solid rgba(255,16,64,0.2)' }}>
+            {tierLabel}
+          </span>
         </div>
       </div>
 
-      {/* ── BRIDGE STRIP ── */}
-      <div style={{ padding: '0 20px', margin: '0', background: '#050505', position: 'relative', zIndex: 10 }}>
+      {/* ── ZONE 2: SEAM (dark strip) ── */}
+      <div style={{
+        background: '#1B1B1D',
+        padding: '12px 16px 0',
+        display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        {/* Left pill — Log */}
         <button
           onClick={() => navigate('/upload')}
           style={{
-            width: '100%',
-            background: 'linear-gradient(135deg, #FF5500, #FF1040)',
-            border: 'none', borderRadius: 20, padding: 17,
-            fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14,
-            letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff',
-            boxShadow: '0 0 28px rgba(255,85,0,0.35)',
-            cursor: 'pointer',
-            animation: 'pulse 3s ease-in-out infinite',
+            flex: 1, height: 56, padding: '0 18px', borderRadius: 18, border: 'none',
+            background: '#1B1B1D', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10,
+            fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+            boxShadow: '0 8px 24px -10px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset',
           }}
-        >⚡ GET ROASTED</button>
+        >
+          <span>Log</span>
+          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 18, lineHeight: 1 }}>+</span>
+          </div>
+        </button>
+
+        {/* Center bolt — navigate to upload */}
+        <button
+          onClick={() => navigate('/upload')}
+          style={{
+            width: 56, height: 56, borderRadius: 18, border: 'none', background: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 0 0 4px #1B1B1D, 0 12px 26px -8px rgba(255,85,0,0.33), 0 0 18px rgba(255,85,0,0.2)',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ width: 36, height: 36, borderRadius: 12, background: 'linear-gradient(135deg, #FF5500, rgba(255,85,0,0.8))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 14px -4px rgba(255,85,0,0.53)' }}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff" stroke="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+          </div>
+        </button>
+
+        {/* Right pill — Stats */}
+        <button
+          onClick={() => setTab('transactions')}
+          style={{
+            flex: 1, height: 56, padding: '0 18px', borderRadius: 18, border: 'none',
+            background: '#1B1B1D', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
+            fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+            boxShadow: '0 8px 24px -10px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset',
+          }}
+        >
+          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 14, lineHeight: 1 }}>↗</span>
+          </div>
+          <span>Stats</span>
+        </button>
       </div>
 
-      {/* ── BOTTOM CONTENT ZONE ── */}
+      {/* ── ZONE 3: CONTENT (white card) ── */}
       <div style={{
-        background: '#0A0A0A', flex: 1,
-        overflowY: 'auto', padding: '24px 20px 100px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: '24px 24px 0 0',
-        marginTop: '-12px',
-        boxShadow: '0 -8px 32px rgba(0,0,0,0.6)',
+        flex: 1,
+        background: '#FFFFFF',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        overflow: 'hidden',
+        position: 'relative',
       }}>
-
-        {/* Stat cards row */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
-          {/* Spent card */}
-          <div style={{
-            background: 'var(--bg-card)', borderRadius: 16, padding: 14, flex: 1,
-            border: '1px solid var(--border)', borderLeft: '3px solid var(--orange)',
-          }}>
-            <p style={{
-              fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
-              letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 6px',
-            }}>Spent</p>
-            <p style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
-              color: 'var(--text-primary)', margin: 0, lineHeight: 1,
-            }}>
-              {spentThisMonth === 0
-                ? '₹—'
-                : spentThisMonth >= 1000
-                ? `₹${(spentThisMonth / 1000).toFixed(1)}k`
-                : `₹${spentThisMonth}`}
-            </p>
-          </div>
-          {/* Streak card */}
-          <div style={{
-            background: 'var(--bg-card)', borderRadius: 16, padding: 14, flex: 1,
-            border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)',
-          }}>
-            <p style={{
-              fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
-              letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 6px',
-            }}>Streak</p>
-            {streak === 0 ? (
-              <p style={{ margin: 0, lineHeight: 1 }}>
-                <span style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
-                  color: 'var(--text-primary)',
-                }}>0 </span>
-                <span style={{ fontSize: 20 }}>🔥</span>
-              </p>
-            ) : (
-              <p style={{ margin: 0, lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                <span style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
-                  color: 'var(--text-primary)',
-                }}>{streak}</span>
-                <span style={{
-                  fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 11,
-                  color: 'var(--text-muted)', letterSpacing: '0.04em',
-                }}>d</span>
-              </p>
-            )}
-          </div>
+        {/* Seam pill badge */}
+        <div style={{ position: 'absolute', top: -16, left: '50%', transform: 'translateX(-50%)', height: 26, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 6, background: '#1B1B1D', color: '#fff', borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomLeftRadius: 14, borderBottomRightRadius: 14, boxShadow: '0 4px 10px -2px rgba(0,0,0,0.25)', zIndex: 1, whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'Geist, system-ui, sans-serif', fontWeight: 700, fontSize: 9, letterSpacing: '0.22em', color: '#fff' }}>VRDIKT</span>
+          <span style={{ display: 'inline-block', width: 5, height: 5, background: '#FF5500', transform: 'rotate(45deg)', borderRadius: 1 }} />
         </div>
 
-        {/* Sunday Roast countdown */}
-        <div style={{
-          background: 'rgba(255,16,64,0.04)', borderRadius: 16,
-          padding: '14px 18px', marginBottom: 14,
-          border: '1px solid rgba(255,16,64,0.28)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
-          <div>
-            <p style={{
-              fontFamily: 'var(--font-ui)', fontSize: 10, textTransform: 'uppercase',
-              letterSpacing: '0.09em', color: 'var(--text-muted)', margin: '0 0 4px',
-            }}>Sunday Roast</p>
-            <p style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
-              color: 'var(--text-primary)', margin: 0,
-            }}>
-              {daysToSunday === 0 ? 'Today!' : `Drops in ${daysToSunday} day${daysToSunday !== 1 ? 's' : ''}`}
-            </p>
+        {/* Scrollable inner */}
+        <div style={{ overflowY: 'auto', height: '100%', padding: '36px 20px 120px' }}>
+
+          {/* Tab pills row */}
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 20, scrollbarWidth: 'none' }}>
+            {TABS.map(({ id, label }) => {
+              const active = tab === id
+              return (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  style={{
+                    background: active ? '#0A0A0A' : 'transparent',
+                    border: `1px solid ${active ? '#0A0A0A' : 'rgba(10,10,10,0.12)'}`,
+                    color: active ? '#fff' : '#6B6B70',
+                    borderRadius: 999, padding: '6px 14px',
+                    fontSize: 10, fontWeight: 600, letterSpacing: '0.1em',
+                    textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    fontFamily: 'Geist, system-ui, sans-serif',
+                    cursor: 'pointer',
+                  }}
+                >{label}</button>
+              )
+            })}
           </div>
-          <span style={{
-            background: 'rgba(255,16,64,0.12)', border: '1px solid rgba(255,16,64,0.3)',
-            borderRadius: 20, padding: '4px 12px',
-            color: 'var(--red)', fontSize: 11, fontFamily: 'var(--font-ui)',
-          }}>Weekly</span>
-        </div>
 
-        {/* Tab pills */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 20px', scrollbarWidth: 'none', marginBottom: 18 }}>
-          {TABS.map(({ id, label }) => {
-            const active = tab === id
-            return (
-              <button
-                key={id}
-                onClick={() => setTab(id)}
-                style={{
-                  background: active ? 'rgba(255,85,0,0.12)' : 'transparent',
-                  border: `1px solid ${active ? 'rgba(255,85,0,0.4)' : 'var(--border)'}`,
-                  borderRadius: 999, padding: '6px 14px',
-                  color: active ? 'var(--orange)' : 'var(--text-muted)',
-                  fontSize: 10, fontWeight: 600, letterSpacing: '0.1em',
-                  fontFamily: 'var(--font-ui)', textTransform: 'uppercase',
-                  cursor: 'pointer', transition: 'all 0.15s',
-                }}
-              >{label}</button>
-            )
-          })}
-        </div>
-
-        {/* Recent Activity — shown on overview tab */}
-        {tab === 'overview' && recentTxns.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>
-                Recent
-              </span>
-              <button
-                onClick={() => setTab('transactions')}
-                style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: 'var(--orange)', fontFamily: 'var(--font-body)', fontSize: 13,
-                  padding: 0,
-                }}
-              >See all →</button>
-            </div>
-            {recentTxns.map((tx, i) => (
-              <div key={tx.id ?? i} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '13px 0',
-                borderBottom: i < recentTxns.length - 1 ? '1px solid var(--border)' : 'none',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 40, height: 40, background: 'var(--bg-card)',
-                    borderRadius: 12, border: '1px solid var(--border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 18, flexShrink: 0,
-                  }}>
-                    {CATEGORY_ICONS[tx.category] ?? '💸'}
+          {/* ── OVERVIEW TAB ── */}
+          {tab === 'overview' && (
+            <>
+              {/* Bento row: Sunday Roast + Streak */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 12, marginBottom: 12 }}>
+                {/* Sunday Roast card */}
+                <div style={{ padding: 16, borderRadius: 22, background: '#F4F4F4', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, background: 'radial-gradient(circle, rgba(255,16,64,0.13), transparent 70%)' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: '#0A0A0A' }}>Sunday Roast</span>
+                    <div style={{ width: 22, height: 22, borderRadius: 99, background: '#fff', border: '1px solid rgba(255,16,64,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔥</div>
                   </div>
+                  <div style={{ fontWeight: 800, fontSize: 28, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, marginTop: 18 }}>
+                    {daysToSunday === 0 ? 'Today!' : daysToSunday + 'd'}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#6B6B70', marginTop: 4 }}>until next verdict</div>
+                </div>
+
+                {/* Streak card */}
+                <div style={{ padding: 16, borderRadius: 22, background: '#F4F4F4', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: '#0A0A0A' }}>Streak</span>
+                    <div style={{ width: 22, height: 22, borderRadius: 99, background: '#fff', border: '1px solid rgba(255,208,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔥</div>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: 28, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, marginTop: 18, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    {streak > 0
+                      ? <>{streak}<span style={{ fontSize: 14, color: '#6B6B70', fontWeight: 500 }}> days</span></>
+                      : '0 🔥'
+                    }
+                  </div>
+                  <div style={{ fontSize: 11, color: '#6B6B70', marginTop: 4 }}>keep it going</div>
+                </div>
+              </div>
+
+              {/* Spent card */}
+              <div style={{ marginTop: 12, padding: 16, borderRadius: 22, background: '#F4F4F4', position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <p style={{
-                      fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 15,
-                      color: 'var(--text-primary)', margin: 0,
-                    }}>{tx.merchant ?? tx.category ?? 'Transaction'}</p>
-                    <p style={{
-                      fontFamily: 'var(--font-body)', fontSize: 12,
-                      color: 'var(--text-muted)', margin: '2px 0 0',
-                    }}>{timeAgo(tx.date ?? tx.created_at)}</p>
+                    <span style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 9, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#6B6B70' }}>
+                      SPENT · {new Date().toLocaleString('default', { month: 'short' }).toUpperCase()}
+                    </span>
+                    <div style={{ fontWeight: 800, fontSize: 26, color: '#0A0A0A', letterSpacing: '-0.025em', marginTop: 6 }}>
+                      {spentThisMonth === 0 ? '₹—' : '₹' + spentThisMonth.toLocaleString('en-IN')}
+                    </div>
                   </div>
                 </div>
-                <span style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15,
-                  color: (tx.type ?? '').includes('credit') ? '#30D158' : 'var(--text-primary)',
-                }}>
-                  {(tx.type ?? '').includes('credit') ? '+' : '−'}₹{Number(tx.amount).toLocaleString('en-IN')}
-                </span>
+                <svg width="100%" height="52" viewBox="0 0 280 52" preserveAspectRatio="none" style={{ marginTop: 10 }}>
+                  <defs>
+                    <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#FF1040" stopOpacity="0.25"/>
+                      <stop offset="100%" stopColor="#FF1040" stopOpacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 42 L24 38 L48 40 L72 30 L96 32 L120 22 L144 26 L168 18 L192 24 L216 12 L240 16 L264 8 L280 6 L280 52 L0 52 Z" fill="url(#sf)" />
+                  <path d="M0 42 L24 38 L48 40 L72 30 L96 32 L120 22 L144 26 L168 18 L192 24 L216 12 L240 16 L264 8 L280 6" stroke="#FF1040" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="280" cy="6" r="3.5" fill="#FF1040"/>
+                  <circle cx="280" cy="6" r="6" fill="#FF1040" fillOpacity="0.2"/>
+                </svg>
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Tab content */}
-        {tab === 'overview' && (
-          <OverviewTab
-            roasts={roasts ?? []} loading={loading}
-            gmailStatus={gmailStatus} autoTxns={autoTxns}
-            navigate={navigate}
-          />
-        )}
-        {tab === 'transactions' && (
-          <TransactionsTab
-            transactions={autoTxns} gmailStatus={gmailStatus}
-            navigate={navigate} onSync={handleGmailSync} syncing={syncing}
-            roasts={roasts ?? []}
-          />
-        )}
-        {tab === 'challenges' && (
-          <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
-        )}
-        {tab === 'couple' && <CoupleMode />}
+              {/* Recent activity header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 4px 10px' }}>
+                <span style={{ fontWeight: 600, fontSize: 14, color: '#0A0A0A' }}>Recent activity</span>
+                <button
+                  onClick={() => setTab('transactions')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B6B70', fontSize: 13, padding: 0 }}
+                >See all →</button>
+              </div>
 
+              {/* Transaction list */}
+              {recentTxns.length === 0
+                ? !gmailStatus?.connected
+                  ? <p style={{ color: '#9A9A9F', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>Connect Gmail to see transactions</p>
+                  : <p style={{ color: '#9A9A9F', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>No transactions yet</p>
+                : recentTxns.map((tx, i) => {
+                    const isCredit = (tx.type ?? '').toLowerCase().includes('credit')
+                    return (
+                      <div key={tx.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 4px', borderBottom: '1px solid rgba(10,10,10,0.07)' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#fff', border: '1px solid rgba(10,10,10,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                          {CATEGORY_ICONS[tx.category] ?? '💸'}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: '#0A0A0A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {tx.merchant ?? tx.category ?? 'Transaction'}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#9A9A9F', marginTop: 2 }}>{timeAgo(tx.date ?? tx.created_at)}</div>
+                        </div>
+                        <span style={{ fontWeight: 700, fontSize: 15, color: isCredit ? '#0d8a3f' : '#FF1040', letterSpacing: '-0.01em', flexShrink: 0 }}>
+                          {isCredit ? '+' : '−'}₹{Number(tx.amount).toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    )
+                  })
+              }
+
+              {/* OverviewTab component (3-stat row + donut) */}
+              <div style={{ marginTop: 24 }}>
+                <OverviewTab roasts={roasts ?? []} loading={loading} gmailStatus={gmailStatus} autoTxns={autoTxns} navigate={navigate} />
+              </div>
+            </>
+          )}
+
+          {/* ── OTHER TABS ── */}
+          {tab === 'transactions' && (
+            <TransactionsTab
+              transactions={autoTxns} gmailStatus={gmailStatus}
+              navigate={navigate} onSync={handleGmailSync} syncing={syncing}
+              roasts={roasts ?? []}
+            />
+          )}
+          {tab === 'challenges' && (
+            <ChallengesTab roasts={roasts ?? []} profile={profile} zomato={zomato} navigate={navigate} />
+          )}
+          {tab === 'couple' && <CoupleMode />}
+
+        </div>
       </div>
 
       <AppNav loggedIn showDashboardBtn={false} user={user} onSignOut={handleSignOut} />
