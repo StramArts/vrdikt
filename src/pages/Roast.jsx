@@ -48,17 +48,19 @@ function ScoreRing({ displayScore, finalScore }) {
 // { score, name, personality, caseNo, roast }
 
 // ─── Foil card (dark gold) ─────────────────────────────────────
-function FoilCard({ data = {}, cardRef }) {
+function FoilCard({ data = {}, cardRef, preview }) {
   const a = '#D4A900'
   const score = data.score ?? 0
+  const pos = preview ? {} : { position: 'fixed', top: -9999, left: -9999 }
   return (
     <div ref={cardRef} style={{
-      position: 'fixed', top: -9999, left: -9999,
-      width: 320, height: 480, borderRadius: 24, padding: 22,
+      ...pos,
+      width: 320, height: 480, borderRadius: 24, padding: 24,
       overflow: 'hidden', fontFamily: 'Geist, system-ui, sans-serif', color: '#fff',
       background: 'linear-gradient(165deg, #1a1305 0%, #0c0801 100%)',
       border: `1.5px solid ${a}88`,
       boxShadow: `0 0 0 1px ${a}44, 0 0 30px ${a}66`,
+      boxSizing: 'border-box',
     }}>
       <div style={{ position: 'absolute', inset: 0, opacity: 0.55, backgroundImage: `repeating-linear-gradient(45deg, ${a}22 0 1px, transparent 1px 8px)` }} />
       {[{t:10,l:10,b:'tl'},{t:10,r:10,b:'tr'},{b2:10,l:10,b:'bl'},{b2:10,r:10,b:'br'}].map((p,i)=>(
@@ -71,24 +73,24 @@ function FoilCard({ data = {}, cardRef }) {
           borderRight:p.b[1]==='r'?`1.5px solid ${a}`:undefined,
         }}/>
       ))}
-      <div style={{ position:'relative',height:'100%',display:'flex',flexDirection:'column' }}>
-        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between' }}>
+      <div style={{ position:'relative',height:'100%',display:'flex',flexDirection:'column',boxSizing:'border-box' }}>
+        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0 }}>
           <div style={{ fontWeight:700,fontSize:13,letterSpacing:'0.2em',color:a }}>VRDIKT ◆</div>
           <span style={{ fontFamily:'Geist Mono,monospace',fontSize:10,color:`${a}cc`,letterSpacing:'0.18em' }}>#{data.caseNo}</span>
         </div>
-        <div style={{ flex:1,display:'flex',flexDirection:'column',justifyContent:'center' }}>
+        <div style={{ flex:1,display:'flex',flexDirection:'column',justifyContent:'center',overflow:'hidden' }}>
           <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,color:`${a}aa`,letterSpacing:'0.18em',textTransform:'uppercase' }}>PERSONALITY</span>
-          <div style={{ fontWeight:800,fontSize:20,lineHeight:1.05,marginTop:6,marginBottom:14,letterSpacing:'-0.015em' }}>{data.personality || 'VRDIKT MEMBER'}</div>
+          <div style={{ fontWeight:800,fontSize:20,lineHeight:1.1,marginTop:6,marginBottom:12,letterSpacing:'-0.015em',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' }}>{data.personality || 'VRDIKT MEMBER'}</div>
           {data.roast && (
-            <div style={{ fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:12,lineHeight:1.45,color:'rgba(255,255,255,0.88)',paddingLeft:10,borderLeft:`2px solid ${a}`,margin:'4px 0 18px' }}>"{data.roast}"</div>
+            <div style={{ fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:11,lineHeight:1.45,color:'rgba(255,255,255,0.88)',paddingLeft:10,borderLeft:`2px solid ${a}`,marginBottom:16,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' }}>"{data.roast}"</div>
           )}
           <div style={{ display:'flex',alignItems:'baseline',gap:4,lineHeight:0.85 }}>
-            <span style={{ fontWeight:900,fontSize:88,color:a,letterSpacing:'-0.05em',textShadow:`0 0 30px ${a}aa` }}>{score}</span>
-            <span style={{ fontFamily:'Geist Mono,monospace',fontSize:16,color:`${a}aa` }}>/100</span>
+            <span style={{ fontWeight:900,fontSize:64,color:a,letterSpacing:'-0.05em',textShadow:`0 0 30px ${a}aa` }}>{score}</span>
+            <span style={{ fontFamily:'Geist Mono,monospace',fontSize:14,color:`${a}aa` }}>/100</span>
           </div>
           <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,color:`${a}aa`,letterSpacing:'0.18em',marginTop:6 }}>VRDIKT SCORE</span>
         </div>
-        <div style={{ display:'flex',alignItems:'center',gap:8,paddingTop:10,borderTop:`1px dashed ${a}55` }}>
+        <div style={{ display:'flex',alignItems:'center',gap:8,paddingTop:10,borderTop:`1px dashed ${a}55`,flexShrink:0 }}>
           <span style={{ width:5,height:5,background:a,transform:'rotate(45deg)',display:'inline-block' }}/>
           <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,fontWeight:600,color:'#fff',letterSpacing:'0.16em' }}>CERTIFIED ROASTED</span>
         </div>
@@ -98,141 +100,161 @@ function FoilCard({ data = {}, cardRef }) {
 }
 
 // ─── Manifesto card (editorial newspaper) ──────────────────────
-function ManifestoCard({ data = {}, cardRef }) {
+function ManifestoCard({ data = {}, cardRef, preview }) {
   const score = data.score ?? 0
   const personality = data.personality || 'VRDIKT MEMBER'
   const words = personality.split(' ')
   const half = Math.ceil(words.length / 2)
+  const pos = preview ? {} : { position: 'fixed', top: -9999, left: -9999 }
   return (
     <div ref={cardRef} style={{
-      position:'fixed',top:-9999,left:-9999,
-      width:320,height:480,borderRadius:6,overflow:'hidden',
-      background:'#F4EDE0',color:'#0a0a0a',
+      ...pos,
+      width:320, height:480, borderRadius:6, overflow:'hidden',
+      background:'#F4EDE0', color:'#0a0a0a',
       fontFamily:'Geist,system-ui,sans-serif',
       boxShadow:'0 30px 60px -16px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(10,10,10,0.08)',
+      display:'flex', flexDirection:'column', boxSizing:'border-box',
     }}>
-      <div style={{ padding:'14px 18px 10px',borderBottom:'1.5px solid #0a0a0a',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-        <div style={{ fontWeight:800,fontSize:18,letterSpacing:'0.18em' }}>VRDIKT<span style={{ color:'#d4a900' }}>◆</span></div>
-        <span style={{ fontFamily:'Geist Mono,monospace',fontSize:9,letterSpacing:'0.18em' }}>CASE #{data.caseNo}</span>
+      {/* header */}
+      <div style={{ padding:'14px 24px 12px', borderBottom:'1.5px solid #0a0a0a', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+        <div style={{ fontWeight:800, fontSize:18, letterSpacing:'0.18em' }}>VRDIKT<span style={{ color:'#d4a900' }}>◆</span></div>
+        <span style={{ fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.18em' }}>CASE #{data.caseNo}</span>
       </div>
-      <div style={{ padding:'16px 18px',position:'relative' }}>
-        <div style={{ display:'inline-block',padding:'3px 8px',background:'#FF1040',color:'#fff',fontFamily:'Geist Mono,monospace',fontWeight:700,fontSize:10,letterSpacing:'0.2em' }}>VERDICT</div>
-        <div style={{ fontWeight:900,fontSize:36,lineHeight:0.92,letterSpacing:'-0.045em',marginTop:14,color:'#0a0a0a' }}>
+      {/* body */}
+      <div style={{ flex:1, padding:'14px 24px', overflow:'hidden', display:'flex', flexDirection:'column' }}>
+        <div style={{ display:'inline-block', padding:'3px 8px', background:'#FF1040', color:'#fff', fontFamily:'Geist Mono,monospace', fontWeight:700, fontSize:10, letterSpacing:'0.2em', alignSelf:'flex-start', marginBottom:10, flexShrink:0 }}>VERDICT</div>
+        <div style={{ fontWeight:900, fontSize:28, lineHeight:0.96, letterSpacing:'-0.04em', color:'#0a0a0a', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', flexShrink:0 }}>
           {words.slice(0,half).join(' ')}<br/>
           <span style={{ color:'#FF1040' }}>{words.slice(half).join(' ').toLowerCase()}.</span>
         </div>
         {data.roast && (
-          <div style={{ marginTop:14,fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:12,lineHeight:1.45,color:'#1a1a1a' }}>"{data.roast}"</div>
+          <div style={{ marginTop:12, fontFamily:'Georgia,serif', fontStyle:'italic', fontSize:11, lineHeight:1.45, color:'#1a1a1a', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', flexShrink:0 }}>"{data.roast}"</div>
         )}
-        <div style={{ marginTop:16,paddingTop:12,borderTop:'1px solid #0a0a0a',display:'flex',alignItems:'flex-end',justifyContent:'space-between' }}>
-          <div>
-            <div style={{ fontFamily:'Geist Mono,monospace',fontSize:9,letterSpacing:'0.2em',color:'#666' }}>SCORE</div>
-            <div style={{ fontWeight:900,fontSize:56,color:'#0a0a0a',letterSpacing:'-0.05em',lineHeight:0.85,marginTop:2 }}>{score}<span style={{ fontSize:18,color:'#999' }}>/100</span></div>
-          </div>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontFamily:'Geist Mono,monospace',fontSize:9,letterSpacing:'0.2em',color:'#666' }}>TIER</div>
-            <div style={{ fontWeight:800,fontSize:11,letterSpacing:'-0.005em',marginTop:4,maxWidth:100,lineHeight:1.15,color:'#0a0a0a' }}>{(data.tier||'ROASTED').toLowerCase()}</div>
-          </div>
+        <div style={{ flex:1 }}/>
+      </div>
+      {/* score + tier */}
+      <div style={{ padding:'10px 24px', borderTop:'1px solid #0a0a0a', display:'flex', alignItems:'flex-end', justifyContent:'space-between', flexShrink:0 }}>
+        <div>
+          <div style={{ fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.2em', color:'#666' }}>SCORE</div>
+          <div style={{ fontWeight:900, fontSize:48, color:'#0a0a0a', letterSpacing:'-0.05em', lineHeight:0.85, marginTop:2 }}>{score}<span style={{ fontSize:16, color:'#999' }}>/100</span></div>
         </div>
-        <div style={{ position:'absolute',left:18,right:18,bottom:14,paddingTop:10,borderTop:'1px solid #0a0a0a',display:'flex',justifyContent:'space-between',fontFamily:'Geist Mono,monospace',fontSize:9,letterSpacing:'0.18em',color:'#0a0a0a' }}>
-          <span>{(data.name||'USER').toUpperCase()}</span>
-          <span>VRDIKT.APP</span>
+        <div style={{ textAlign:'right' }}>
+          <div style={{ fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.2em', color:'#666' }}>TIER</div>
+          <div style={{ fontWeight:800, fontSize:11, letterSpacing:'-0.005em', marginTop:4, maxWidth:100, lineHeight:1.15, color:'#0a0a0a' }}>{(data.tier||'ROASTED').toLowerCase()}</div>
         </div>
+      </div>
+      {/* footer */}
+      <div style={{ padding:'8px 24px 12px', borderTop:'1px dashed rgba(10,10,10,0.25)', display:'flex', justifyContent:'space-between', fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.18em', color:'#0a0a0a', flexShrink:0 }}>
+        <span>{(data.name||'USER').toUpperCase()}</span>
+        <span>VRDIKT.APP</span>
       </div>
     </div>
   )
 }
 
 // ─── Receipt card (thermal printer) ────────────────────────────
-function ReceiptCard({ data = {}, cardRef }) {
+function ReceiptCard({ data = {}, cardRef, preview }) {
   const score = data.score ?? 0
+  const pos = preview ? {} : { position: 'fixed', top: -9999, left: -9999 }
   return (
     <div ref={cardRef} style={{
-      position:'fixed',top:-9999,left:-9999,
-      width:280,height:520,fontFamily:'Geist Mono,ui-monospace,monospace',color:'#0a0a0a',
+      ...pos,
+      width:280, height:520, fontFamily:'Geist Mono,ui-monospace,monospace', color:'#0a0a0a',
       filter:'drop-shadow(0 30px 60px rgba(0,0,0,0.45))',
+      boxSizing:'border-box',
     }}>
-      <div style={{ background:'#FAFAF6',padding:'20px 22px' }}>
+      <div style={{ background:'#FAFAF6', padding:'20px 20px', boxSizing:'border-box' }}>
         <div style={{ textAlign:'center' }}>
-          <div style={{ fontFamily:'Geist,system-ui,sans-serif',fontWeight:800,fontSize:24,letterSpacing:'0.2em' }}>VRDIKT</div>
-          <div style={{ fontSize:9,letterSpacing:'0.2em',marginTop:4 }}>──── PERSONAL FINANCE ROAST ────</div>
-          <div style={{ fontSize:9,letterSpacing:'0.16em',marginTop:10,color:'#444' }}>
+          <div style={{ fontFamily:'Geist,system-ui,sans-serif', fontWeight:800, fontSize:24, letterSpacing:'0.2em' }}>VRDIKT</div>
+          <div style={{ fontSize:9, letterSpacing:'0.2em', marginTop:4 }}>──── PERSONAL FINANCE ROAST ────</div>
+          <div style={{ fontSize:9, letterSpacing:'0.16em', marginTop:10, color:'#444' }}>
             CASE NO. {data.caseNo}<br/>
             CLIENT: {(data.name||'USER').toUpperCase()}
           </div>
         </div>
-        <div style={{ marginTop:14,height:1,borderTop:'1px dashed #0a0a0a' }}/>
+        <div style={{ marginTop:14, height:1, borderTop:'1px dashed #0a0a0a' }}/>
         <div style={{ marginTop:12 }}>
-          <div style={{ display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:12 }}>
-            <span style={{ color:'#444',letterSpacing:'0.16em',fontSize:10 }}>VERDICT</span>
-            <span style={{ flex:1,borderBottom:'1px dotted #aaa',alignSelf:'flex-end',margin:'0 4px 2px' }}/>
-            <span style={{ fontWeight:700 }}>GUILTY</span>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 0', fontSize:12 }}>
+            <span style={{ color:'#444', letterSpacing:'0.16em', fontSize:10, flexShrink:0 }}>VERDICT</span>
+            <span style={{ flex:1, borderBottom:'1px dotted #aaa', margin:'0 6px' }}/>
+            <span style={{ fontWeight:700, flexShrink:0 }}>GUILTY</span>
           </div>
-          <div style={{ display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:12 }}>
-            <span style={{ color:'#444',letterSpacing:'0.16em',fontSize:10 }}>PERSONALITY</span>
-            <span style={{ flex:1,borderBottom:'1px dotted #aaa',alignSelf:'flex-end',margin:'0 4px 2px' }}/>
-            <span style={{ fontWeight:700,fontSize:10 }}>{(data.personality||'ROASTED').split(' ').slice(-2).join(' ')}</span>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 0', fontSize:12 }}>
+            <span style={{ color:'#444', letterSpacing:'0.16em', fontSize:10, flexShrink:0 }}>PERSONALITY</span>
+            <span style={{ flex:1, borderBottom:'1px dotted #aaa', margin:'0 6px' }}/>
+            <span style={{ fontWeight:700, fontSize:10, flexShrink:0 }}>{(data.personality||'ROASTED').split(' ').slice(-2).join(' ')}</span>
           </div>
         </div>
-        <div style={{ marginTop:12,height:1,borderTop:'1px dashed #0a0a0a' }}/>
+        <div style={{ marginTop:12, height:1, borderTop:'1px dashed #0a0a0a' }}/>
         <div style={{ marginTop:14 }}>
-          <div style={{ fontSize:9,letterSpacing:'0.2em',color:'#444' }}>FINAL SCORE</div>
-          <div style={{ display:'flex',alignItems:'baseline',justifyContent:'space-between',marginTop:4 }}>
-            <span style={{ fontFamily:'Geist,system-ui,sans-serif',fontWeight:900,fontSize:64,letterSpacing:'-0.05em',lineHeight:0.85 }}>{score}</span>
-            <span style={{ fontSize:14,color:'#666' }}>/100 PTS</span>
+          <div style={{ fontSize:9, letterSpacing:'0.2em', color:'#444' }}>FINAL SCORE</div>
+          <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginTop:4 }}>
+            <span style={{ fontFamily:'Geist,system-ui,sans-serif', fontWeight:900, fontSize:60, letterSpacing:'-0.05em', lineHeight:0.85 }}>{score}</span>
+            <span style={{ fontSize:13, color:'#666' }}>/100 PTS</span>
           </div>
         </div>
-        <div style={{ marginTop:14,height:1,borderTop:'1px dashed #0a0a0a' }}/>
-        {data.roast && <div style={{ marginTop:12,fontSize:11,lineHeight:1.5,color:'#1a1a1a' }}>"{data.roast}"</div>}
-        <div style={{ marginTop:16,display:'flex',justifyContent:'center' }}>
-          <div style={{ transform:'rotate(-7deg)',padding:'6px 14px',border:'2px solid #FF1040',borderRadius:4,color:'#FF1040',fontFamily:'Geist,system-ui,sans-serif',fontWeight:800,fontSize:16,letterSpacing:'0.18em' }}>CERTIFIED ROASTED</div>
+        <div style={{ marginTop:14, height:1, borderTop:'1px dashed #0a0a0a' }}/>
+        {data.roast && (
+          <div style={{ marginTop:12, fontSize:11, lineHeight:1.5, color:'#1a1a1a', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical' }}>"{data.roast}"</div>
+        )}
+        {/* Stamp — right-aligned so it doesn't sit over the score */}
+        <div style={{ marginTop:14, display:'flex', justifyContent:'flex-end' }}>
+          <div style={{ transform:'rotate(-8deg)', padding:'5px 12px', border:'2px solid #FF1040', borderRadius:4, color:'#FF1040', fontFamily:'Geist,system-ui,sans-serif', fontWeight:800, fontSize:13, letterSpacing:'0.18em' }}>CERTIFIED ROASTED</div>
         </div>
-        <div style={{ marginTop:18,display:'flex',justifyContent:'center',alignItems:'center',gap:1 }}>
+        <div style={{ marginTop:14, display:'flex', justifyContent:'center', alignItems:'center', gap:1 }}>
           {Array.from({length:38}).map((_,i)=>{
             const w=[1,1,2,3,1,2,1,3][i%8]
-            return <div key={i} style={{ width:w,height:32,background:'#0a0a0a' }}/>
+            return <div key={i} style={{ width:w, height:28, background:'#0a0a0a' }}/>
           })}
         </div>
-        <div style={{ marginTop:4,textAlign:'center',fontSize:9,letterSpacing:'0.2em',color:'#444' }}>VRDIKT.APP/B{data.caseNo}</div>
-        <div style={{ marginTop:16,textAlign:'center',fontSize:9,letterSpacing:'0.18em' }}>★ THANK YOU FOR YOUR PARTICIPATION ★</div>
+        <div style={{ marginTop:4, textAlign:'center', fontSize:9, letterSpacing:'0.2em', color:'#444' }}>VRDIKT.APP/B{data.caseNo}</div>
+        <div style={{ marginTop:12, textAlign:'center', fontSize:9, letterSpacing:'0.18em' }}>★ THANK YOU FOR YOUR PARTICIPATION ★</div>
       </div>
     </div>
   )
 }
 
 // ─── Sticker card (orange bold pop) ────────────────────────────
-function StickerCard({ data = {}, cardRef }) {
+function StickerCard({ data = {}, cardRef, preview }) {
   const score = data.score ?? 0
+  const pos = preview ? {} : { position: 'fixed', top: -9999, left: -9999 }
   return (
     <div ref={cardRef} style={{
-      position:'fixed',top:-9999,left:-9999,
-      width:320,height:480,borderRadius:24,overflow:'hidden',
-      background:'#FF5500',fontFamily:'Geist,system-ui,sans-serif',color:'#0a0a0a',
+      ...pos,
+      width:320, height:480, borderRadius:24, overflow:'hidden',
+      background:'#FF5500', fontFamily:'Geist,system-ui,sans-serif', color:'#0a0a0a',
       boxShadow:'0 30px 60px -16px rgba(255,85,0,0.55)',
+      boxSizing:'border-box',
     }}>
-      <div style={{ position:'absolute',inset:0,opacity:0.18,backgroundImage:`radial-gradient(rgba(0,0,0,0.5) 1.2px, transparent 1.5px)`,backgroundSize:'8px 8px' }}/>
-      <div style={{ position:'absolute',top:-120,right:-120,width:320,height:320,borderRadius:'50%',background:'#FFD000',boxShadow:'0 0 0 8px rgba(0,0,0,0.06)' }}/>
-      <div style={{ position:'absolute',top:220,left:-40,right:-40,height:56,background:'#0a0a0a',transform:'rotate(-4deg)',display:'flex',alignItems:'center',justifyContent:'center' }}>
-        <div style={{ display:'flex',gap:18,fontFamily:'Geist Mono,monospace',color:'#FFD000',fontSize:11,fontWeight:700,letterSpacing:'0.2em' }}>
+      <div style={{ position:'absolute', inset:0, opacity:0.18, backgroundImage:`radial-gradient(rgba(0,0,0,0.5) 1.2px, transparent 1.5px)`, backgroundSize:'8px 8px' }}/>
+      {/* Yellow circle BEHIND the score — intentional design */}
+      <div style={{ position:'absolute', top:-120, right:-120, width:320, height:320, borderRadius:'50%', background:'#FFD000', boxShadow:'0 0 0 8px rgba(0,0,0,0.06)' }}/>
+      {/* VERDICT stripe */}
+      <div style={{ position:'absolute', top:220, left:-40, right:-40, height:56, background:'#0a0a0a', transform:'rotate(-4deg)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ display:'flex', gap:18, fontFamily:'Geist Mono,monospace', color:'#FFD000', fontSize:11, fontWeight:700, letterSpacing:'0.2em' }}>
           <span>★ VERDICT ★</span><span>★ VERDICT ★</span><span>★ VERDICT ★</span>
         </div>
       </div>
-      <div style={{ position:'relative',padding:22,height:'100%',display:'flex',flexDirection:'column' }}>
-        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div style={{ fontWeight:800,fontSize:18,letterSpacing:'0.2em' }}>VRDIKT</div>
-          <div style={{ padding:'3px 8px',border:'1.5px solid #0a0a0a',borderRadius:4,fontSize:10,fontWeight:700,letterSpacing:'0.16em' }}>#{data.caseNo}</div>
+      <div style={{ position:'relative', padding:24, height:'100%', display:'flex', flexDirection:'column', boxSizing:'border-box' }}>
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+          <div style={{ fontWeight:800, fontSize:18, letterSpacing:'0.2em' }}>VRDIKT</div>
+          <div style={{ padding:'3px 8px', border:'1.5px solid #0a0a0a', borderRadius:4, fontSize:10, fontWeight:700, letterSpacing:'0.16em' }}>#{data.caseNo}</div>
         </div>
-        <div style={{ marginTop:28,position:'relative' }}>
-          <div style={{ fontWeight:900,fontSize:160,color:'#0a0a0a',letterSpacing:'-0.07em',lineHeight:0.8,position:'relative',zIndex:1 }}>{score}</div>
-          <div style={{ position:'absolute',top:6,left:6,zIndex:0,fontWeight:900,fontSize:160,letterSpacing:'-0.07em',lineHeight:0.8,color:'#FF1040' }}>{score}</div>
+        {/* Score — capped at 96px so it stays within bounds */}
+        <div style={{ marginTop:24, position:'relative', flexShrink:0 }}>
+          <div style={{ fontWeight:900, fontSize:96, color:'#0a0a0a', letterSpacing:'-0.07em', lineHeight:0.85, position:'relative', zIndex:1 }}>{score}</div>
+          <div style={{ position:'absolute', top:6, left:6, zIndex:0, fontWeight:900, fontSize:96, letterSpacing:'-0.07em', lineHeight:0.85, color:'#FF1040' }}>{score}</div>
         </div>
-        <div style={{ marginTop:-8,fontWeight:700,fontSize:14,letterSpacing:'0.18em' }}>OUT OF 100.</div>
+        <div style={{ marginTop:6, fontWeight:700, fontSize:14, letterSpacing:'0.18em', flexShrink:0 }}>OUT OF 100.</div>
         <div style={{ flex:1 }}/>
-        <div style={{ padding:14,borderRadius:16,background:'#0a0a0a',color:'#FFD000' }}>
-          <div style={{ fontFamily:'Geist Mono,monospace',fontSize:9,letterSpacing:'0.2em',opacity:0.7 }}>YOU ARE</div>
-          <div style={{ fontWeight:800,fontSize:16,lineHeight:1.05,marginTop:4,letterSpacing:'-0.005em' }}>{data.personality||'FINANCIALLY ROASTED'}</div>
+        {/* Personality section — own dark block, clear of orange area */}
+        <div style={{ padding:16, borderRadius:16, background:'#0a0a0a', color:'#FFD000', flexShrink:0 }}>
+          <div style={{ fontFamily:'Geist Mono,monospace', fontSize:9, letterSpacing:'0.2em', opacity:0.7 }}>YOU ARE</div>
+          <div style={{ fontWeight:800, fontSize:16, lineHeight:1.1, marginTop:4, letterSpacing:'-0.005em', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{data.personality||'FINANCIALLY ROASTED'}</div>
         </div>
-        <div style={{ position:'absolute',top:160,right:20,transform:'rotate(12deg)',padding:'6px 12px',border:'2px solid #0a0a0a',borderRadius:4,background:'#FFD000',fontWeight:800,fontSize:11,letterSpacing:'0.16em',boxShadow:'3px 3px 0 #0a0a0a' }}>GUILTY</div>
+        {/* GUILTY stamp — floats in upper-right of score area */}
+        <div style={{ position:'absolute', top:92, right:20, transform:'rotate(12deg)', padding:'6px 12px', border:'2px solid #0a0a0a', borderRadius:4, background:'#FFD000', fontWeight:800, fontSize:11, letterSpacing:'0.16em', boxShadow:'3px 3px 0 #0a0a0a', zIndex:2 }}>GUILTY</div>
       </div>
     </div>
   )
@@ -258,6 +280,54 @@ function QuoteCard({ n, text, visible }) {
         fontFamily: '"DM Sans", Outfit, sans-serif', fontWeight: 400,
         fontSize: 16, lineHeight: 1.55, color: '#F0F0F0',
       }}>{text}</div>
+    </div>
+  )
+}
+
+// ─── Scaled-down card thumbnail for the picker ─────────────────
+function CardPreview({ id, data, isSelected, accent, onSelect }) {
+  const CARD_W = id === 'receipt' ? 280 : 320
+  const CARD_H = id === 'receipt' ? 520 : 480
+  const THUMB_W = isSelected ? 200 : 140
+  const scale = THUMB_W / CARD_W
+  const THUMB_H = Math.round(CARD_H * scale)
+  return (
+    <div
+      onClick={onSelect}
+      style={{
+        flexShrink: 0, scrollSnapAlign: 'center',
+        width: THUMB_W, height: THUMB_H,
+        borderRadius: id === 'receipt' ? 4 : 18,
+        overflow: 'hidden', position: 'relative',
+        border: isSelected ? `1.5px solid ${accent}88` : '1.5px solid rgba(255,255,255,0.08)',
+        boxShadow: isSelected
+          ? `0 0 0 1px ${accent}33, 0 20px 40px -8px ${accent}77, 0 32px 64px rgba(0,0,0,0.5)`
+          : '0 16px 32px rgba(0,0,0,0.4)',
+        opacity: isSelected ? 1 : 0.5,
+        cursor: 'pointer',
+        transition: 'all 350ms cubic-bezier(.2,.8,.2,1)',
+      }}
+    >
+      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: CARD_W, height: CARD_H, pointerEvents: 'none' }}>
+        {id === 'foil'      && <FoilCard      data={data} preview />}
+        {id === 'manifesto' && <ManifestoCard data={data} preview />}
+        {id === 'receipt'   && <ReceiptCard   data={data} preview />}
+        {id === 'sticker'   && <StickerCard   data={data} preview />}
+      </div>
+      {isSelected && (
+        <div style={{
+          position: 'absolute', top: 8, right: 8,
+          width: 22, height: 22, borderRadius: '50%',
+          background: accent, color: '#0a0a0a',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 0 0 2px #0A0A0A, 0 4px 10px ${accent}88`,
+          zIndex: 10,
+        }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m5 12 5 5 10-12"/>
+          </svg>
+        </div>
+      )}
     </div>
   )
 }
@@ -521,78 +591,28 @@ export default function Roast() {
             </div>
           </div>
 
-          {/* Horizontal card scroll */}
+          {/* Horizontal card scroll — actual scaled card designs */}
           <div
             ref={pickerScrollRef}
             style={{
               position: 'relative', zIndex: 2,
               display: 'flex', alignItems: 'center',
-              gap: 16, paddingLeft: '20%', paddingRight: '20%',
+              gap: 16, paddingLeft: '8%', paddingRight: '8%',
               paddingTop: 16, paddingBottom: 20,
               overflowX: 'auto', overflowY: 'visible',
               scrollSnapType: 'x mandatory', scrollbarWidth: 'none',
             }}
           >
-            {CARD_VARIANTS.map((v) => {
-              const isSelected = selectedCard === v.id
-              const W = isSelected ? 200 : 140
-              const H = isSelected ? 296 : 208
-
-              const previewBg =
-                v.id === 'foil'      ? 'linear-gradient(165deg,#1a1305,#0c0801)' :
-                v.id === 'manifesto' ? '#F4EDE0' :
-                v.id === 'receipt'   ? '#FAFAF6' : '#FF5500'
-              const previewColor = (v.id === 'manifesto' || v.id === 'receipt') ? '#0a0a0a' : '#fff'
-
-              return (
-                <div
-                  key={v.id}
-                  onClick={() => setSelectedCard(v.id)}
-                  style={{
-                    flexShrink: 0, scrollSnapAlign: 'center',
-                    width: W, height: H,
-                    borderRadius: v.id === 'receipt' ? 4 : 18,
-                    background: previewBg,
-                    border: isSelected ? `1.5px solid ${v.accent}88` : '1.5px solid rgba(255,255,255,0.08)',
-                    boxShadow: isSelected
-                      ? `0 0 0 1px ${v.accent}33, 0 20px 40px -8px ${v.accent}77, 0 32px 64px rgba(0,0,0,0.5)`
-                      : '0 16px 32px rgba(0,0,0,0.4)',
-                    cursor: 'pointer', overflow: 'hidden', position: 'relative',
-                    display: 'flex', flexDirection: 'column', padding: 14,
-                    color: previewColor, fontFamily: 'Geist, system-ui, sans-serif',
-                    opacity: isSelected ? 1 : 0.5,
-                    transform: isSelected ? 'scale(1)' : 'scale(0.97)',
-                    transition: 'all 350ms cubic-bezier(.2,.8,.2,1)',
-                  }}
-                >
-                  <div style={{ fontWeight: 700, fontSize: 9, letterSpacing: '0.18em', opacity: 0.7 }}>VRDIKT</div>
-                  <div style={{ fontWeight: 900, fontSize: 44, letterSpacing: '-0.05em', lineHeight: 0.9, marginTop: 8, color: v.id === 'foil' ? '#D4A900' : v.id === 'sticker' ? '#0a0a0a' : previewColor }}>{score}</div>
-                  <div style={{ fontSize: 8, fontWeight: 600, opacity: 0.5, marginTop: 4, letterSpacing: '0.1em' }}>/100</div>
-                  <div style={{ flex: 1 }} />
-                  <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.08em', opacity: 0.7, lineHeight: 1.3 }}>{(personalityType || 'VRDIKT MEMBER').toUpperCase()}</div>
-
-                  {isSelected && (
-                    <div style={{
-                      position: 'absolute', top: 8, right: 8,
-                      width: 22, height: 22, borderRadius: '50%',
-                      background: v.accent, color: '#0a0a0a',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: `0 0 0 2px #0A0A0A, 0 4px 10px ${v.accent}88`,
-                    }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m5 12 5 5 10-12"/>
-                      </svg>
-                    </div>
-                  )}
-                  {v.id === 'sticker' && (
-                    <div style={{ position: 'absolute', top: -30, right: -30, width: 80, height: 80, borderRadius: '50%', background: '#FFD000', opacity: 0.6 }} />
-                  )}
-                  {v.id === 'foil' && (
-                    <div style={{ position: 'absolute', inset: 0, backgroundImage: `repeating-linear-gradient(45deg, rgba(212,169,0,0.12) 0 1px, transparent 1px 8px)`, pointerEvents: 'none' }} />
-                  )}
-                </div>
-              )
-            })}
+            {CARD_VARIANTS.map((v) => (
+              <CardPreview
+                key={v.id}
+                id={v.id}
+                data={cardData}
+                isSelected={selectedCard === v.id}
+                accent={v.accent}
+                onSelect={() => setSelectedCard(v.id)}
+              />
+            ))}
           </div>
 
           {/* Dot indicator + card label */}
